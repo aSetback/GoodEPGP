@@ -50,6 +50,7 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("CHAT_MSG_WHISPER")
     GoodEPGP:GuildRoster()
     GoodEPGP:RaidRoster()
+    GoodEPGP.lootButtons = {}
 end
 
 -- Event handler for being whispered
@@ -98,10 +99,20 @@ end
 -- Add click event listeners for all items within a loot box
 function GoodEPGP:LOOT_OPENED()
 	local n = GetNumLootItems()
-	for i = 1, n do
-        _G["LootButton" .. tostring(i)]:SetScript("OnClick", function(button, data)
-            GoodEPGP:LootClick(button, data, i);
-        end)    
+    for i = 1, n do
+        local buttonName = "LootButton" .. tostring(i)
+        local buttonExists = false
+        for j = 1, #GoodEPGP.lootButtons do
+            if (GoodEPGP.lootButtons[j] == buttonName) then
+                buttonExists = true
+            end
+        end
+        if (buttonExists == false) then
+            _G[buttonName]:HookScript("OnClick", function(button, data)
+                table.insert(GoodEPGP.lootButtons, buttonName)
+                GoodEPGP:LootClick(button, data, i);
+            end)    
+        end
 	end
 end
 
@@ -270,7 +281,7 @@ function GoodEPGP:GetRaidIndexByName(name)
     if (name == nil) then
         self:Print("Nil name.")
     else 
-        for i=1, table.getn(GoodEPGP.raidRoster) do
+        for i=1, #GoodEPGP.raidRoster do
             if (name == GoodEPGP.raidRoster[i].player) then
                 index = i;
             end
@@ -288,7 +299,7 @@ function GoodEPGP:GetGuildIndexByName(name)
     if (name == nil) then
         self:Print("Nil name.")
     else 
-        for i=1, table.getn(GoodEPGP.guildRoster) do
+        for i=1, #GoodEPGP.guildRoster do
             if (name == GoodEPGP.guildRoster[i].player) then
                 index = i;
             end
@@ -322,7 +333,7 @@ end
 
 -- Add a certain amount of EP to all players in the raid
 function GoodEPGP:AddEPToRaid(amount)
-    for i=1, table.getn(GoodEPGP.raidRoster) do
+    for i=1, #GoodEPGP.raidRoster do
         GoodEPGP:AddEPByName(GoodEPGP.raidRoster[i].player, amount)
     end
     GoodEPGP:WidestAudience("Added " .. amount .. " EP to entire raid.")
@@ -335,7 +346,7 @@ function GoodEPGP:ShowBids()
         return
     end
     self:Print("=== Main Spec ===")
-    for i=1, table.getn(GoodEPGP.bids) do
+    for i=1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
         if (bid.type == "mainspec") then
             self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
@@ -343,7 +354,7 @@ function GoodEPGP:ShowBids()
     end
     self:Print(" ")
     self:Print("=== Off Spec ===")
-    for i=1, table.getn(GoodEPGP.bids) do
+    for i=1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
         if (bid.type == "offspec") then
             self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
