@@ -1,5 +1,6 @@
 GoodEPGP = LibStub("AceAddon-3.0"):NewAddon("GoodEPGP", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
+-- Add our slash commands
 SLASH_GEP1, SLASH_GEP2 = "/goodepgp", "/gep"
 function SlashCmdList.GEP(msg, editbox)
    local subcmd = select(1, strsplit(" ", msg))
@@ -42,6 +43,7 @@ function SlashCmdList.GEP(msg, editbox)
     end
 end
 
+-- Alert the player the add-on has started, and register our events.
 function GoodEPGP:OnEnable()
     self:Print("Add-on started.")
     self:RegisterEvent("LOOT_OPENED")
@@ -50,34 +52,18 @@ function GoodEPGP:OnEnable()
     GoodEPGP:RaidRoster()
 end
 
-function GoodEPGP:OnDisable()
-    self:Print("Add-on Disabled.")
-end
-
-function GoodEPGP:whisperCommands(command, playerName)
-    local subcmd = select(1, strsplit(" ", command))
-    local arg1 = select(2, strsplit(" ", command))
-    local arg2 = select(3, strsplit(" ", command))
-
-    if (subcmd == "item") then
-        local spacePosition = string.find(command, " ")
-        local itemName = string.sub(command, spacePosition + 1)
-        GoodEPGP:ShowPrice(itemName, "whisper", playerName)
-    end
-    if (subcmd == "player") then
-        GoodEPGP:PlayerInfo(arg1, "whisper", playerName)
-    end
-end
-
+-- Event handler for being whispered
 function GoodEPGP:CHAT_MSG_WHISPER(type, text, playerName)
-    -- Route it to a separate function
+    -- If a whisper starts with the triger, route it to a separate function
     local trigger = select(1, strsplit(" ", text))
     if (trigger == "!gep") then
         local spacePosition = string.find(text, " ")
         local command = string.sub(text, spacePosition + 1)
-        GoodEPGP:whisperCommands(command, playerName)
+        GoodEPGP:WhisperCommands(command, playerName)
         return true
     end
+
+    -- Handle bidding
     if (GoodEPGP.activeBid ~= true) then 
         return false
     end
@@ -93,6 +79,23 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, text, playerName)
     end
 end
 
+-- Handle whispered command parsing / routing
+function GoodEPGP:WhisperCommands(command, playerName)
+    local subcmd = select(1, strsplit(" ", command))
+    local arg1 = select(2, strsplit(" ", command))
+    local arg2 = select(3, strsplit(" ", command))
+
+    if (subcmd == "item") then
+        local spacePosition = string.find(command, " ")
+        local itemName = string.sub(command, spacePosition + 1)
+        GoodEPGP:ShowPrice(itemName, "whisper", playerName)
+    end
+    if (subcmd == "player") then
+        GoodEPGP:PlayerInfo(arg1, "whisper", playerName)
+    end
+end
+
+-- Add click event listeners for all items within a loot box
 function GoodEPGP:LOOT_OPENED()
 	local n = GetNumLootItems()
 	for i = 1, n do
@@ -102,9 +105,10 @@ function GoodEPGP:LOOT_OPENED()
 	end
 end
 
+-- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
     if not IsAltKeyDown() then 
-        return
+        return 
     end
     local item = GetLootSlotLink(key)
     local itemName = select(1, GetItemInfo(item))
@@ -126,6 +130,7 @@ function GoodEPGP:LootClick(button, data, key)
     
 end
 
+-- Get an item's GP price by item ID
 function GoodEPGP:GetPrice(itemID)
     local price = 0
     itemID = tonumber(itemID)
@@ -136,6 +141,7 @@ function GoodEPGP:GetPrice(itemID)
     return price
 end
 
+-- Retrive the price of an item, and send it back via whisper/console
 function GoodEPGP:ShowPrice(item, type, playerName)
     local itemID = GoodEPGP:GetItemID(item)
     self:Print(itemID)
@@ -154,6 +160,7 @@ function GoodEPGP:ShowPrice(item, type, playerName)
     end
 end
 
+-- Get an item's ID based on the name (retrived from prices.lua)
 function GoodEPGP:GetItemID(name)
     local itemID = 0
     for key, value in pairs(GoodEPGP.prices) do
@@ -165,20 +172,7 @@ function GoodEPGP:GetItemID(name)
     return itemID
 end
 
-function GoodEPGP:WidestAudience(msg)
-    local channel = "GUILD"
-    if UnitInRaid("player") then
-        if (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
-            channel = "RAID_WARNING"
-        else
-            channel = "RAID"
-        end
-    elseif UnitExists("party1") then
-        channel = "PARTY"
-    end
-    SendChatMessage(msg, channel)
-end
-
+-- Retrieve the current guild roster, load to GoodEPGP.guildRoster
 function GoodEPGP:GuildRoster()
     local guildMembers = GetNumGuildMembers()
     GoodEPGP.guildRoster = {};
@@ -211,6 +205,7 @@ function GoodEPGP:GuildRoster()
     end
 end
 
+-- Retrieve the current raid roster, load to GoodEPGP.raidRoster
 function GoodEPGP:RaidRoster()
     local raidMember = GetNumGroupMembers()
     GoodEPGP.raidRoster = {};
@@ -222,11 +217,7 @@ function GoodEPGP:RaidRoster()
     end
 end
 
-function GoodEPGP:Round(num, places)
-    local mult = 10^(places or 0)
-    return math.floor(num * mult + 0.5) / mult
-end
-
+-- Save a player's EP & GP to their officer note.
 function GoodEPGP:SetEPGP(index, ep, gp)
     local epgpString = tostring(ep) .. "," .. tostring(gp)
     GuildRosterSetOfficerNote(index, epgpString)
@@ -235,6 +226,7 @@ function GoodEPGP:SetEPGP(index, ep, gp)
     GoodEPGP.guildRoster[index].gp = gp    
 end
 
+-- Add EP to a player by their name
 function GoodEPGP:AddEPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
     local index = GoodEPGP:GetGuildIndexByName(name)
@@ -246,6 +238,7 @@ function GoodEPGP:AddEPByName(name, amount)
     GoodEPGP:PlayerInfo(name)
 end
 
+-- Add GP to a player by their name
 function GoodEPGP:AddGPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
     local index = GoodEPGP:GetGuildIndexByName(name)
@@ -257,18 +250,21 @@ function GoodEPGP:AddGPByName(name, amount)
     GoodEPGP:PlayerInfo(name)
 end
 
+-- Add GP to a player based on their index in guild roster
 function GoodEPGP:AddGPByIndex(index, amount)
     local memberInfo = GoodEPGP.guildRoster[index]
     local newGP = tonumber(memberInfo.gp) + tonumber(amount)
     GoodEPGP:SetEPGP(index, memberInfo.ep, newGP)
 end
 
+-- Add EP to a player based on their index in guild roster
 function GoodEPGP:AddEPByIndex(index, amount)
     local memberInfo = GoodEPGP.guildRoster[index]
     local newEP = tonumber(memberInfo.ep) + tonumber(amount)
     GoodEPGP:SetEPGP(index, newEP, memberInfo.gp)
 end
 
+-- Get a player's index within the raid roster
 function GoodEPGP:GetRaidIndexByName(name)
     local index = 0;
     if (name == nil) then
@@ -286,6 +282,7 @@ function GoodEPGP:GetRaidIndexByName(name)
     return index
 end
 
+-- Get a player's index within the guild roster
 function GoodEPGP:GetGuildIndexByName(name)
     local index = 0;
     if (name == nil) then
@@ -303,11 +300,7 @@ function GoodEPGP:GetGuildIndexByName(name)
     return index
 end
 
-function GoodEPGP:UCFirst(word)
-    word = word:sub(1,1):upper() .. word:sub(2):lower()
-    return word
-end
-
+-- Get a player's current EP/GP standing. Name = player to lookup, type = (whisper|console), playerName = player to whisper back with information
 function GoodEPGP:PlayerInfo(name, type, playerName)
     name = GoodEPGP:UCFirst(name)
     local index = GoodEPGP:GetGuildIndexByName(name)
@@ -327,6 +320,7 @@ function GoodEPGP:PlayerInfo(name, type, playerName)
     end
 end
 
+-- Add a certain amount of EP to all players in the raid
 function GoodEPGP:AddEPToRaid(amount)
     for i=1, table.getn(GoodEPGP.raidRoster) do
         GoodEPGP:AddEPByName(GoodEPGP.raidRoster[i].player, amount)
@@ -334,12 +328,12 @@ function GoodEPGP:AddEPToRaid(amount)
     GoodEPGP:WidestAudience("Added " .. amount .. " EP to entire raid.")
 end
 
+-- Display all bids for the current item to console.
 function GoodEPGP:ShowBids()
     if (GoodEPGP.bids == nil) then
         self:Print("No bids.")
         return
     end
-
     self:Print("=== Main Spec ===")
     for i=1, table.getn(GoodEPGP.bids) do
         local bid = GoodEPGP.bids[i]
@@ -357,6 +351,7 @@ function GoodEPGP:ShowBids()
     end
 end
 
+-- Award the current item up for bids to player by namne.  Type = (ms|os)
 function GoodEPGP:AwardItem(player, type)
     player = GoodEPGP:UCFirst(player)
     local playerIndex = GoodEPGP:GetRaidIndexByName(player)
@@ -372,6 +367,36 @@ function GoodEPGP:AwardItem(player, type)
     end
 end
 
+-- == UTILITY FUNCTIONS ==
+
+-- Capitalize the first letter of a word, lowercase the rest.
+function GoodEPGP:UCFirst(word)
+    word = word:sub(1,1):upper() .. word:sub(2):lower()
+    return word
+end
+
+-- Send a branded whisper to player.  message = message to send, playerName = player to whisper
 function GoodEPGP:SendWhisper(message, playerName)
     SendChatMessage("<GoodEPGP> -- " .. message, "WHISPER", "COMMON", playerName)
+end
+
+-- Round a number to a certain number of places
+function GoodEPGP:Round(num, places)
+    local mult = 10^(places or 0)
+    return math.floor(num * mult + 0.5) / mult
+end
+
+-- Determine which chat channel should be used to display a message
+function GoodEPGP:WidestAudience(msg)
+    local channel = "GUILD"
+    if UnitInRaid("player") then
+        if (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+            channel = "RAID_WARNING"
+        else
+            channel = "RAID"
+        end
+    elseif UnitExists("party1") then
+        channel = "PARTY"
+    end
+    SendChatMessage(msg, channel)
 end
