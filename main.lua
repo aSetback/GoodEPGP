@@ -197,6 +197,7 @@ function GoodEPGP:GuildRoster()
             ep = 0
             reset = true;
         end
+        --TODO: Add a variable somewhere for min-GP
         if (gp == nil or gp < 100) then
             gp = 100
             reset = true;
