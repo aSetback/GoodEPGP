@@ -24,22 +24,35 @@ function SlashCmdList.GEP(msg, editbox)
             GoodEPGP:PlayerInfo(arg1)
         end
     end
-
-end
-
-function GoodEPGP:OnInitialize()
-    self:Print("Add-on Initialized.")
+    if (subcmd == "bids") then
+        GoodEPGP:ShowBids()
+    end
 end
 
 function GoodEPGP:OnEnable()
-    self:Print("Add-on Enabled.")
+    self:Print("Add-on started.")
     self:RegisterEvent("LOOT_OPENED")
+    self:RegisterEvent("CHAT_MSG_WHISPER")
     GoodEPGP:GuildRoster()
     GoodEPGP:RaidRoster()
 end
 
 function GoodEPGP:OnDisable()
     self:Print("Add-on Disabled.")
+end
+
+function GoodEPGP:CHAT_MSG_WHISPER(type, text, playerName)
+    if (GoodEPGP.activeBid ~= true) then return end
+    local player = select(1, strsplit("-", playerName))
+    local index = GoodEPGP:GetGuildIndexByName(player)
+    local memberInfo = GoodEPGP.guildRoster[index]
+    local prio = GoodEPGP:Round(memberInfo.ep / memberInfo.gp, 2)
+
+    if (text == "+")  then
+        table.insert(GoodEPGP.bids, {["player"]=player, ["prio"]=prio, ["type"]="mainspec"})
+    elseif (text == "-") then
+        table.insert(GoodEPGP.bids, {["player"]=player, ["prio"]=prio, ["type"]="offspec"})
+    end
 end
 
 function GoodEPGP:LOOT_OPENED()
@@ -52,19 +65,24 @@ function GoodEPGP:LOOT_OPENED()
 end
 
 function GoodEPGP:LootClick(button, data, key)
-    if not IsAltKeyDown() then return end
+    if not IsAltKeyDown() then 
+        return
+    end
     local item = GetLootSlotLink(key)
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
     local price = GoodEPGP:GetPrice(itemID)
     local offspecPrice = math.floor(price * .25)
+    GoodEPGP.activeBid = true
+    GoodEPGP.bids = {}
 
     if (data == "LeftButton") then
         GoodEPGP:WidestAudience("Whisper me + to bid on " .. itemLink .. " as main spec. (Cost: " .. price .. " GP)")
     else 
         GoodEPGP:WidestAudience("Whisper me - to bid on " .. itemLink .. " as off spec.  (Cost: " .. offspecPrice .. " GP)")
     end
+    
 end
 
 function GoodEPGP:GetPrice(itemID)
@@ -81,9 +99,9 @@ function GoodEPGP:WidestAudience(msg)
     local channel = "GUILD"
     if UnitInRaid("player") then
         if (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
-        channel = "RAID_WARNING"
+            channel = "RAID_WARNING"
         else
-        channel = "RAID"
+            channel = "RAID"
         end
     elseif UnitExists("party1") then
         channel = "PARTY"
@@ -182,13 +200,17 @@ end
 
 function GoodEPGP:GetGuildIndexByName(name)
     local index = 0;
-    for i=1, table.getn(GoodEPGP.guildRoster) do
-        if (name == GoodEPGP.guildRoster[i].player) then
-            index = i;
+    if (name == nil) then
+        self:Print("Nil name.")
+    else 
+        for i=1, table.getn(GoodEPGP.guildRoster) do
+            if (name == GoodEPGP.guildRoster[i].player) then
+                index = i;
+            end
         end
-    end
-    if (index == 0) then
-        self:Print("Unable to find " .. name)
+        if (index == 0) then
+            self:Print("Unable to find " .. name)
+        end
     end
     return index
 end
@@ -214,4 +236,29 @@ function GoodEPGP:AddEPToRaid(amount)
         GoodEPGP:AddEPByName(GoodEPGP.raidRoster[i].player, amount)
     end
     GoodEPGP:WidestAudience("Added " .. amount .. " EP to entire raid.")
+end
+
+function GoodEPGP:ShowBids()
+    if (GoodEPGP.bids == nil) then
+        self:Print("No bids.")
+        return
+    end
+
+    self:Print("=== Main Spec ===")
+    for i=1, table.getn(GoodEPGP.bids) do
+        local bid = GoodEPGP.bids[i]
+        if (bid.type == "mainspec") then
+            self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
+        end
+    end
+    self:Print(" ")
+    self:Print("=== Off Spec ===")
+    for i=1, table.getn(GoodEPGP.bids) do
+        local bid = GoodEPGP.bids[i]
+        if (bid.type == "offspec") then
+            self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
+        end
+    end
+
+
 end
