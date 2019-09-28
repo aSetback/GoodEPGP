@@ -20,12 +20,25 @@ function SlashCmdList.GEP(msg, editbox)
         end
     end
     if (subcmd == "info") then 
-        if (arg1 ~= "") then
+        if (arg1 ~= "" and arg1 ~= nil) then
             GoodEPGP:PlayerInfo(arg1)
         end
     end
     if (subcmd == "bids") then
         GoodEPGP:ShowBids()
+    end
+    if (subcmd == "award") then
+        if (arg1 ~= "" and arg1 ~= nil) then
+            if (arg2 == "" or arg2 == nil) then
+                arg2 = 'ms'
+            end
+            GoodEPGP:AwardItem(arg1, arg2)
+        end
+    end
+    if (subcmd == "item") then
+        local spacePosition = string.find(msg, " ")
+        itemName = string.sub(msg, spacePosition + 1)
+        GoodEPGP:ShowPrice(itemName)
     end
 end
 
@@ -75,6 +88,9 @@ function GoodEPGP:LootClick(button, data, key)
     local price = GoodEPGP:GetPrice(itemID)
     local offspecPrice = math.floor(price * .25)
     GoodEPGP.activeBid = true
+    GoodEPGP.activeItemIndex = key
+    GoodEPGP.activePrice = price
+    GoodEPGP.activeOffspecPrice = offspecPrice
     GoodEPGP.bids = {}
 
     if (data == "LeftButton") then
@@ -93,6 +109,30 @@ function GoodEPGP:GetPrice(itemID)
         price = priceTable[1];
     end
     return price
+end
+
+function GoodEPGP:ShowPrice(item)
+    local itemID = GoodEPGP:GetItemID(item)
+    if (itemID == 0) then
+        self:Print("Item not found.")
+        return false
+    end
+
+    local itemLink = select(2, GetItemInfo(itemID))
+    local itemPrice = GoodEPGP:GetPrice(itemID)
+    self:Print(itemLink .. ': ' .. itemPrice .. ' GP.')
+
+end
+
+function GoodEPGP:GetItemID(name)
+    local itemID = 0
+    for key, value in pairs(GoodEPGP.prices) do
+        local itemName = value[2]
+        if (name:lower() == itemName:lower()) then
+            itemID = key;
+        end
+    end
+    return itemID
 end
 
 function GoodEPGP:WidestAudience(msg)
@@ -198,6 +238,23 @@ function GoodEPGP:AddEPByIndex(index, amount)
     GoodEPGP:SetEPGP(index, newEP, memberInfo.gp)
 end
 
+function GoodEPGP:GetRaidIndexByName(name)
+    local index = 0;
+    if (name == nil) then
+        self:Print("Nil name.")
+    else 
+        for i=1, table.getn(GoodEPGP.raidRoster) do
+            if (name == GoodEPGP.raidRoster[i].player) then
+                index = i;
+            end
+        end
+        if (index == 0) then
+            self:Print("Unable to find " .. name)
+        end
+    end
+    return index
+end
+
 function GoodEPGP:GetGuildIndexByName(name)
     local index = 0;
     if (name == nil) then
@@ -259,6 +316,19 @@ function GoodEPGP:ShowBids()
             self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
         end
     end
+end
 
-
+function GoodEPGP:AwardItem(player, type)
+    player = GoodEPGP:UCFirst(player)
+    local playerIndex = GoodEPGP:GetRaidIndexByName(player)
+    if (playerIndex == 0) then
+        self:Print("Player " .. player .. " not found in raid.")
+        return false
+    end
+    GiveMasterLoot(GoodEPGP.activeItemIndex, playerIndex)
+    if (arg2:lower() == "ms") then
+        GoodEPGP.AddGPByName(player, GoodEPGP.activePrice)
+    elseif (arg2:lower() == "os") then
+        GoodEPGP.AddGPByName(player, GoodEPGP.activeOffspecPrice)
+    end
 end
