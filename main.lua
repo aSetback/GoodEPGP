@@ -57,11 +57,24 @@ function GoodEPGP:LootClick(button, data, key)
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
+    local price = GoodEPGP:GetPrice(itemID)
+    local offspecPrice = math.floor(price * .25)
+
     if (data == "LeftButton") then
-        GoodEPGP:WidestAudience("Whisper me a + to bid on " .. itemLink .. " as main spec.")
+        GoodEPGP:WidestAudience("Whisper me + to bid on " .. itemLink .. " as main spec. (Cost: " .. price .. " GP)")
     else 
-        GoodEPGP:WidestAudience("Whisper me a - to bid on " .. itemLink .. " as off spec.")
+        GoodEPGP:WidestAudience("Whisper me - to bid on " .. itemLink .. " as off spec.  (Cost: " .. offspecPrice .. " GP)")
     end
+end
+
+function GoodEPGP:GetPrice(itemID)
+    local price = 0
+    itemID = tonumber(itemID)
+    if (GoodEPGP.prices[itemID] ~= nil) then
+        local priceTable = GoodEPGP.prices[itemID]
+        price = priceTable[1];
+    end
+    return price
 end
 
 function GoodEPGP:WidestAudience(msg)
