@@ -19,7 +19,7 @@ function SlashCmdList.GEP(msg, editbox)
             GoodEPGP:AddGPByName(arg1, arg2)
         end
     end
-    if (subcmd == "info") then 
+    if (subcmd == "player") then 
         if (arg1 ~= "" and arg1 ~= nil) then
             GoodEPGP:PlayerInfo(arg1)
         end
@@ -54,8 +54,33 @@ function GoodEPGP:OnDisable()
     self:Print("Add-on Disabled.")
 end
 
+function GoodEPGP:whisperCommands(command, playerName)
+    local subcmd = select(1, strsplit(" ", command))
+    local arg1 = select(2, strsplit(" ", command))
+    local arg2 = select(3, strsplit(" ", command))
+
+    if (subcmd == "item") then
+        local spacePosition = string.find(command, " ")
+        local itemName = string.sub(command, spacePosition + 1)
+        GoodEPGP:ShowPrice(itemName, "whisper", playerName)
+    end
+    if (subcmd == "player") then
+        GoodEPGP:PlayerInfo(arg1, "whisper", playerName)
+    end
+end
+
 function GoodEPGP:CHAT_MSG_WHISPER(type, text, playerName)
-    if (GoodEPGP.activeBid ~= true) then return end
+    -- Route it to a separate function
+    local trigger = select(1, strsplit(" ", text))
+    if (trigger == "!gep") then
+        local spacePosition = string.find(text, " ")
+        local command = string.sub(text, spacePosition + 1)
+        GoodEPGP:whisperCommands(command, playerName)
+        return true
+    end
+    if (GoodEPGP.activeBid ~= true) then 
+        return false
+    end
     local player = select(1, strsplit("-", playerName))
     local index = GoodEPGP:GetGuildIndexByName(player)
     local memberInfo = GoodEPGP.guildRoster[index]
@@ -111,8 +136,9 @@ function GoodEPGP:GetPrice(itemID)
     return price
 end
 
-function GoodEPGP:ShowPrice(item)
+function GoodEPGP:ShowPrice(item, type, playerName)
     local itemID = GoodEPGP:GetItemID(item)
+    self:Print(itemID)
     if (itemID == 0) then
         self:Print("Item not found.")
         return false
@@ -120,8 +146,12 @@ function GoodEPGP:ShowPrice(item)
 
     local itemLink = select(2, GetItemInfo(itemID))
     local itemPrice = GoodEPGP:GetPrice(itemID)
-    self:Print(itemLink .. ': ' .. itemPrice .. ' GP.')
-
+    local itemString = itemLink .. ': ' .. itemPrice .. ' GP.'
+    if (type == "whisper") then
+        GoodEPGP:SendWhisper(itemString, playerName)
+    else
+        self:Print(itemString)
+    end
 end
 
 function GoodEPGP:GetItemID(name)
@@ -277,15 +307,23 @@ function GoodEPGP:UCFirst(word)
     return word
 end
 
-function GoodEPGP:PlayerInfo(name)
+function GoodEPGP:PlayerInfo(name, type, playerName)
     name = GoodEPGP:UCFirst(name)
     local index = GoodEPGP:GetGuildIndexByName(name)
     if (index == 0) then
-        return 0
+        if (type == "whisper") then
+            GoodEPGP:SendWhisper("Unable to find player '" .. name .. "'", playerName)
+        end
+        return false
     end
     local memberInfo = GoodEPGP.guildRoster[index]
     local prio = GoodEPGP:Round(memberInfo.ep / memberInfo.gp, 2)
-    self:Print("EPGP for " .. name .. ": " .. memberInfo.ep .. " EP / " .. memberInfo.gp .. " GP (" .. prio .. " Prio)" )
+    local playerString = "EPGP for " .. name .. ": " .. memberInfo.ep .. " EP / " .. memberInfo.gp .. " GP (" .. prio .. " Prio)"
+    if (type == "whisper") then
+        GoodEPGP:SendWhisper(playerString, playerName)
+    else
+        self:Print(playerString)
+    end
 end
 
 function GoodEPGP:AddEPToRaid(amount)
@@ -331,4 +369,8 @@ function GoodEPGP:AwardItem(player, type)
     elseif (arg2:lower() == "os") then
         GoodEPGP.AddGPByName(player, GoodEPGP.activeOffspecPrice)
     end
+end
+
+function GoodEPGP:SendWhisper(message, playerName)
+    SendChatMessage("<GoodEPGP> -- " .. message, "WHISPER", "COMMON", playerName)
 end
