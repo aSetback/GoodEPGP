@@ -93,8 +93,13 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
     local command = select(1, strsplit(" ", commandMessage))
     local arg1 = select(2, strsplit(" ", commandMessage))
     local arg2 = select(3, strsplit(" ", commandMessage))
-    local argString = string.sub(commandMessage, string.find(commandMessage, " ") + 1)
+    local argString = nil
     local type = nil
+
+    -- Full string after the command
+    if (string.find(commandMessage, " ") ~= nil) then
+        local argString = string.sub(commandMessage, string.find(commandMessage, " ") + 1)
+    end
 
     -- Set response type
     if (playerName ~= nil) then
@@ -104,22 +109,31 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
     -- Item cost lookup
     if (command == "item") then
         GoodEPGP:ShowPrice(argString, type, playerName)
+        return
     end
 
     -- Standings lookup by class
     if (command == "standings") then
         GoodEPGP:ShowStandingsByClass(arg1, arg2, type, playerName)
+        return
     end
 
     -- Player standngs lookup
     if (command == "player") then
         GoodEPGP:PlayerInfo(arg1, type, playerName)
+        return
     end
 
+    -- Set spec via member note
     if (command == "setspec" and playerName ~= nil) then
-        
         GoodEPGP:SetSpec(playerName, arg1)
+        return
     end
+
+    -- None of the if statements triggered, let's assume they want an item lookup
+    GoodEPGP:ShowPrice(commandMessage, type, playerName)
+
+
 end
 
 -- Add click event listeners for all items within a loot box
@@ -441,8 +455,15 @@ function GoodEPGP:PlayerInfo(name, type, playerName)
         return false
     end
     local memberInfo = GoodEPGP.guildRoster[index]
-    local prio = GoodEPGP:Round(memberInfo.ep / memberInfo.gp, 2)
-    local playerString = "EPGP for " .. name .. ": " .. memberInfo.ep .. " EP / " .. memberInfo.gp .. " GP (" .. prio .. " Prio)"
+    GoodEPGP:ShowPlayerInfo(memberInfo, type, playerName)
+end
+
+-- Output a single line of standings
+function GoodEPGP:ShowPlayerInfo(memberInfo, type, playerName)
+    if (memberInfo == nil) then
+        return false
+    end
+    local playerString = memberInfo.player .. ": " .. memberInfo.ep .. " EP / " .. memberInfo.gp .. " GP (" .. memberInfo.pr .. " Prio)"
     GoodEPGP:HandleOutput(playerString, type, playerName)
 end
 
@@ -496,15 +517,23 @@ end
 
 -- Show standings by class, with a minimum priority (1 by default)
 function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
-    local classStandings = GoodEPGP:GetStandingsByClass(class)
+    -- Retrieve our standings by class(es)
+    local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
+    if (classStandings == nil or #classStandings == 0) then
+        GoodEPGP:HandleOutput("No results found.", type, playerName)
+        return false
+    end
+    
+    -- Check if minimum is set and numeric
+    minimumPrio = tonumber(minimumPrio)
     if (minimumPrio == nil) then
         minimumPrio = 1
     end
     
-    for key, member in pairs(classStandings) do
-        if (tonumber(member.pr) >= tonumber(minimumPrio)) then
-            local playerString = member.player .. ": " .. member.ep .. " EP / " .. member.gp .. " GP (" .. member.pr .. " Prio)"
-            GoodEPGP:HandleOutput(playerString, type, playerName)
+    -- Loop through our classStandings table and show every line above minimum prio
+    for key, memberInfo in pairs(classStandings) do
+        if (tonumber(memberInfo.pr) >= tonumber(minimumPrio)) then
+            GoodEPGP:ShowPlayerInfo(memberInfo, type, playerName)
         end
     end
 end
@@ -607,4 +636,20 @@ function GoodEPGP:SplitString(string, delimiter)
         table.insert(result, match);
     end
     return result;
+end
+
+function GoodEPGP:ConfirmAction(acceptCallback, cancelCalback)
+    StaticPopupDialogs["CONFIRM_ACTION"] ={
+        preferredIndex = 3,
+        button1 = "Yes",
+        button2 = "No",
+        OnAccept = acceptCallback,
+        OnCancel = cancelCalback,
+        timeout = 0,
+        hideOnEscape = false,
+        showAlert = true
+    }
+
+    StaticPopupDialogs["CONFIRM_ACTION"].text =  "Hello world"
+    StaticPopup_Show("CONFIRM_ACTION")      
 end
