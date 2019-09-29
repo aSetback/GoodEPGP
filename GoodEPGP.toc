@@ -10,3 +10,4 @@ embeds.xml
 
 main.lua
 prices.lua
+specs.lua
