@@ -14,9 +14,12 @@ end
 function GoodEPGP:OnEnable()
     --TODO: Make settings configurable
     -- Settings
-    GoodEPGP.decayPercent = .1 -- 10%
-    GoodEPGP.minGP = 100 
-    GoodEPGP.debugEnabled = 0
+    GoodEPGP.config = {
+        ["trigger"] = "!gep",
+        ["decayPercent"] = .1,
+        ["minGP"] = 100,
+        ["debugEnabled"] = 0
+    }
 
     -- Load message
     GoodEPGP:Debug("Add-on started.")
@@ -50,12 +53,13 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     -- If a whisper starts with the triger, route it to a separate function
     local trigger = select(1, strsplit(" ", whisperText))
     local player = select(1, strsplit("-", playerName))
-    if (trigger == "!gep") then
+    if (trigger == GoodEPGP.config.trigger) then
         local command = string.sub(whisperText, string.find(whisperText, " ") + 1)
         GoodEPGP:PublicCommands(command, player)
         return true
     end
 
+    -- Prevent further processing if it's not a bid
     if (whisperText ~= "+" and whisperText ~= "-") then 
         return true
     end
@@ -67,7 +71,7 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     local index = GoodEPGP:GetGuildIndexByName(player)
     local memberInfo = GoodEPGP.guildRoster[index]
     if (memberInfo == nil) then
-        memberInfo = {["ep"]=100, ["gp"]=GoodEPGP.minGP}
+        memberInfo = {["ep"]=100, ["gp"]=GoodEPGP.config.minGP}
     end
     local prio = GoodEPGP:Round(memberInfo.ep / memberInfo.gp, 2)
 
@@ -332,8 +336,8 @@ function GoodEPGP:GuildRoster()
             reset = true;
         end
 
-        if (gp == nil or gp < GoodEPGP.minGP) then
-            gp = GoodEPGP.minGP
+        if (gp == nil or gp < GoodEPGP.config.minGP) then
+            gp = GoodEPGP.config.minGP
             reset = true;
         end
         local pr = GoodEPGP:Round(ep/gp, 2)
@@ -483,7 +487,7 @@ end
 function GoodEPGP:ResetEPGP()
     --TODO: Add confirmation
     for key, member in pairs(GoodEPGP.guildRoster) do
-        GoodEPGP:SetEPGP(key, 0, GoodEPGP.minGP)
+        GoodEPGP:SetEPGP(key, 0, GoodEPGP.config.minGP)
     end
 end
 
@@ -495,7 +499,7 @@ function GoodEPGP:Decay()
     end
 
     -- Announce to guild
-    local decayPercent = GoodEPGP:Round(GoodEPGP.decayPercent * 100, 0) .. '%.'
+    local decayPercent = GoodEPGP:Round(GoodEPGP.config.decayPercent * 100, 0) .. '%.'
     GoodEPGP:SendGuild("EP & GP have been decayed by " .. decayPercent)
 end
 
@@ -506,10 +510,10 @@ function GoodEPGP:DecayByGuildIndex(index)
         return
     end
 
-    local ep = GoodEPGP.guildRoster[index].ep * (1 - tonumber(GoodEPGP.decayPercent))
-    local gp = GoodEPGP.guildRoster[index].gp * (1 - tonumber(GoodEPGP.decayPercent))
-    if (gp < GoodEPGP.minGP) then
-        gp = GoodEPGP.minGP
+    local ep = GoodEPGP.guildRoster[index].ep * (1 - tonumber(GoodEPGP.config.decayPercent))
+    local gp = GoodEPGP.guildRoster[index].gp * (1 - tonumber(GoodEPGP.config.decayPercent))
+    if (gp < GoodEPGP.config.minGP) then
+        gp = GoodEPGP.config.minGP
     end
     local prio = GoodEPGP:Round(ep / gp, 2)
     GoodEPGP:SetEPGP(index, ep, gp)
@@ -748,7 +752,7 @@ function GoodEPGP:ConfirmAction(acceptCallback, cancelCalback)
 end
 
 function GoodEPGP:Debug(message)
-    if (GoodEPGP.debugEnabled == 1 or GoodEPGP.debugEnabled == true) then
+    if (GoodEPGP.config.debugEnabled == 1 or GoodEPGP.debugEnabled == true) then
         self:Print("DEBUG: " .. message)
     end
 end
