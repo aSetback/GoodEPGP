@@ -146,15 +146,17 @@ end
 
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
+    -- If the alt key is being run down, run a EPGP  bid
     if not IsAltKeyDown() then 
         return true;
     end
-    local item = GetLootSlotLink(key)
     
     -- If it's just currency, or the slot is empty, just return.
+    local item = GetLootSlotLink(key)
     if (item == nil) then
         return true;
     end
+    
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
@@ -188,13 +190,18 @@ end
 
 -- Retrive the price of an item, and send it back via whisper/console
 function GoodEPGP:ShowPrice(item, type, playerName)
+    -- Attempt to pull up item data via link
     local itemID = GoodEPGP:GetItemID(item)
-    if (itemID == 0) then
+
+    -- If we couldn't find an item id, try a wildcard check against the price list
+    if (itemID == nil) then
         local itemIDs = GoodEPGP:GetWildcardItemIDs(item)
+        -- Display the price info for all matching items
         for key, value in pairs(itemIDs) do
             GoodEPGP:DisplayPrice(value, type, playerName)
         end
     else
+        -- Display the price info for the single matching info.
         GoodEPGP:DisplayPrice(itemID, type, playerName)
     end
 end
@@ -213,6 +220,15 @@ end
 
 -- Display the price of an item
 function GoodEPGP:DisplayPrice(itemID, type, playerName)
+    -- Verify we have a passed itemID
+    if (itemID == nil) then
+        return false
+    end
+
+    -- Verify itemID is numeric
+    itemID = tonumber(itemID)
+
+    -- Retrieve item info from the database asynchronously
     local item = Item:CreateFromItemID(itemID)
     item:ContinueOnItemLoad(function() 
         local itemName = select(1, GetItemInfo(itemID))
@@ -224,14 +240,29 @@ function GoodEPGP:DisplayPrice(itemID, type, playerName)
 end
 
 -- Get an item's ID based on the name (retrived from prices.lua)
-function GoodEPGP:GetItemID(name)
-    local itemID = 0
+function GoodEPGP:GetItemID(itemString)
+    local itemID = nil
+    
+    -- Attempt to retrieve item info by name / item link
+    local itemLink = select(2, GetItemInfo(itemString))
+    if (itemLink ~= nil) then
+        -- Pull itemID from itemLink
+        itemID = select(2, strsplit(":", itemLink, 3))
+        -- If itemID is set, return it.
+        if (itemID ~= nil) then
+            return itemID
+        end
+    end
+
+    -- Couldn't find by a straight GetItemInfo lookup, let's try looking it up in our price list.
     for key, value in pairs(GoodEPGP.prices) do
         local itemName = value[2]
-        if (name:lower() == itemName:lower()) then
+        if (itemString:lower() == itemName:lower()) then
             itemID = key;
         end
     end
+
+    -- Return whatever we have itemID
     return itemID
 end
 
