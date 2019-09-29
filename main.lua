@@ -80,7 +80,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
             if (arg2 == "" or arg2 == nil) then
                 arg2 = 'ms'
             end
-            GoodEPGP:AwardItem(arg1, arg2)
+            GoodEPGP:ConfirmAwardItem(arg1, arg2)
         end
     end
 end
@@ -498,9 +498,20 @@ function GoodEPGP:ShowBids()
     end
 end
 
+-- Confirm the item should be looted to player
+function GoodEPGP:ConfirmAwardItem(playerName, type)
+    -- Callback is anonymous function that awards the item
+    GoodEPGP:ConfirmAction(function(playerName, type) 
+        GoodEPGP:AwardItem(playerName, type)
+    end)
+end
+
 -- Award the current item up for bids to player by namne.  Type = (ms|os)
 function GoodEPGP:AwardItem(playerName, type)
+
+    -- Format player's name
     playerName = GoodEPGP:UCFirst(playerName)
+
     -- Retrive player's candidate index by name
     candidateIndex = GoodEPGP:MasterLootCandidateByName(playerName)
     
@@ -641,6 +652,7 @@ end
 function GoodEPGP:ConfirmAction(acceptCallback, cancelCalback)
     StaticPopupDialogs["CONFIRM_ACTION"] ={
         preferredIndex = 3,
+        text = "-",
         button1 = "Yes",
         button2 = "No",
         OnAccept = acceptCallback,
