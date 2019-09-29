@@ -18,7 +18,7 @@ function GoodEPGP:OnEnable()
         ["trigger"] = "!gep",
         ["decayPercent"] = .1,
         ["minGP"] = 100,
-        ["debugEnabled"] = 0
+        ["debugEnabled"] = 1
     }
 
     -- Load message
@@ -87,14 +87,17 @@ function GoodEPGP:PrivateCommands(commandMessage)
     local command = select(1, strsplit(" ", commandMessage))
     local arg1 = select(2, strsplit(" ", commandMessage))
     local arg2 = select(3, strsplit(" ", commandMessage))
+    local arg3 = select(4, strsplit(" ", commandMessage))
     if (command == "ep") then
-         if (arg1 ~= "" and arg2 ~= "") then
-             if (GoodEPGP:UCFirst(arg1) == "Raid") then
-                 GoodEPGP:AddEPToRaid(arg2)
-             else
-                 GoodEPGP:AddEPByName(arg1, arg2)
-             end
-         end
+        if (arg1 ~= "" and arg2 ~= "") then
+            if (arg1:lower() == "raid") then
+                GoodEPGP:AddEPToRaid(arg2)
+            elseif (arg1:lower() == "list") then
+                GoodEPGP:AddEPToList(arg2, arg3)
+            else
+                GoodEPGP:AddEPByName(arg1, arg2)
+            end
+        end
     end
     if (command == "gp") then
         if (arg1 ~= "" and arg2 ~= "") then
@@ -163,6 +166,11 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
     if (command == "setspec" and playerName ~= nil) then
         GoodEPGP:SetSpec(playerName, arg1)
         return
+    end
+
+    -- Charge a player for an item
+    if (command == "charge") then
+        GoodEPGP:ChargeForItem(arg1, arg2, arg3, type, playerName)
     end
 
     -- None of the if statements triggered, let's assume they want an item lookup
@@ -554,6 +562,14 @@ function GoodEPGP:AddEPToRaid(amount)
     GoodEPGP:WidestAudience("Added " .. amount .. " EP to entire raid.")
 end
 
+-- Add a certain amount of EP to a comma delimited list of guild members
+function GoodEPGP:AddEPToList(list, amount) 
+    list = GoodEPGP:SplitString(list, ",")
+    for key, member in pairs(list) do
+        GoodEPGP:AddEPByName(member, amount)
+    end
+end
+
 -- Display all bids for the current item to console.
 function GoodEPGP:ShowBids()
     --TODO: Output this to a frame
@@ -586,8 +602,8 @@ function GoodEPGP:ConfirmAwardItem(playerName, type)
     end)
 end
 
--- Award the current item up for bids to player by namne.  Type = (ms|os)
-function GoodEPGP:AwardItem(playerName, type)
+-- Award the current item up for bids to player by namne.  priceType = (ms|os)
+function GoodEPGP:AwardItem(playerName, priceType)
 
     -- Format player's name
     playerName = GoodEPGP:UCFirst(playerName)
@@ -599,11 +615,26 @@ function GoodEPGP:AwardItem(playerName, type)
     GiveMasterLoot(GoodEPGP.activeItemIndex, candidateIndex)
     
     --- Award main spec or offspec GP
-    if (type:lower() == "ms") then
-        GoodEPGP:AddGPByName(playerName, GoodEPGP.activePrice)
-    elseif (type:lower() == "os") then
-        GoodEPGP:AddGPByName(playerName, GoodEPGP.activeOffspecPrice)
+    local price = GoodEPGP:GetPrice(itemID)
+    if (priceType == 'os') then
+        price = GoodEPGP.Round(price * .25, 0)
     end
+    GoodEPGP:AddGPByName(playerName, price)
+end
+
+-- Charge a player for an item
+function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
+    local itemID = GoodEPGP:GetItemID(itemString)
+    if (itemID == nil) then
+        GoodEPGP:HandleOutput('Could not find item.', type, member)
+    end
+
+    local price = GoodEPGP:GetPrice(itemID)
+    if (priceType == 'os') then
+        price = GoodEPGP.Round(price * .25, 0)
+    end
+
+    GoodEPGP:AddGPByName(member, price)
 end
 
 -- Show standings by class, with a minimum priority (1 by default)
