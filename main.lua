@@ -37,7 +37,7 @@ function GoodEPGP:OnEnable()
 
     -- Build Raid Roster
     GoodEPGP:RaidRoster()
-
+    
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
 end
@@ -68,6 +68,7 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     if (GoodEPGP.activeBid ~= true) then 
         return false
     end
+    
     local index = GoodEPGP:GetGuildIndexByName(player)
     local memberInfo = GoodEPGP.guildRoster[index]
     if (memberInfo == nil) then
@@ -76,10 +77,12 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     local prio = GoodEPGP:Round(memberInfo.ep / memberInfo.gp, 2)
 
     if (whisperText == "+")  then
-        table.insert(GoodEPGP.bids, {["player"]=player, ["prio"]=prio, ["type"]="mainspec"})
+        table.insert(GoodEPGP.bids, {["player"]=player, ["ep"]=memberInfo.ep, ["gp"]=memberInfo.gp, ["prio"]=prio, ["type"]="mainspec"})
     elseif (whisperText == "-") then
-        table.insert(GoodEPGP.bids, {["player"]=player, ["prio"]=prio, ["type"]="offspec"})
+        table.insert(GoodEPGP.bids, {["player"]=player, ["ep"]=memberInfo.ep, ["gp"]=memberInfo.gp, ["prio"]=prio, ["type"]="offspec"})
     end
+
+    GoodEPGP:UpdateBidFrame()
 end
 
 -- Handle private command parsing/routing
@@ -103,9 +106,6 @@ function GoodEPGP:PrivateCommands(commandMessage)
         if (arg1 ~= "" and arg2 ~= "") then
             GoodEPGP:AddGPByName(arg1, arg2)
         end
-    end
-    if (command == "bids") then
-        GoodEPGP:ShowBids()
     end
     if (command == "award") then
         if (arg1 ~= "" and arg1 ~= nil) then
@@ -221,6 +221,7 @@ function GoodEPGP:LootClick(button, data, key)
     local offspecPrice = math.floor(price * .25)
     GoodEPGP.activeBid = true
     GoodEPGP.activeItemIndex = key
+    GoodEPGP.activeItem = item   
     GoodEPGP.activePrice = price
     GoodEPGP.activeOffspecPrice = offspecPrice
     GoodEPGP.bids = {}
@@ -230,6 +231,8 @@ function GoodEPGP:LootClick(button, data, key)
     else 
         GoodEPGP:WidestAudience("Whisper me - to bid on " .. itemLink .. " as off spec.  (Cost: " .. offspecPrice .. " GP)")
     end
+
+    GoodEPGP:UpdateBidFrame()
     
 end
 
@@ -365,7 +368,9 @@ function GoodEPGP:RaidRoster()
     for i = 1, raidMembers, 1 do
         local player = select(1, GetRaidRosterInfo(i))
         player = select(1, strsplit("-", player))
-        GoodEPGP.raidRoster[i] = {["player"]=player}
+        local level = select(4, GetRaidRosterInfo(i))
+        local class = select(5, GetRaidRosterInfo(i))
+        GoodEPGP.raidRoster[i] = {["player"]=player, ["level"]=level, ["class"]=class}
     end
 end
 
@@ -457,7 +462,7 @@ end
 
 -- Get a player's index within the raid roster
 function GoodEPGP:GetRaidIndexByName(name)
-    local index = 0;
+    local index = nil;
     if (name == nil) then
         GoodEPGP:Debug("Empty name for Raid Index lookup.")
     else 
@@ -570,35 +575,16 @@ function GoodEPGP:AddEPToList(list, amount)
     end
 end
 
--- Display all bids for the current item to console.
-function GoodEPGP:ShowBids()
-    --TODO: Output this to a frame
-    if (GoodEPGP.bids == nil) then
-        self:Print("No bids.")
-        return
-    end
-    self:Print("=== Main Spec ===")
-    for i=1, #GoodEPGP.bids do
-        local bid = GoodEPGP.bids[i]
-        if (bid.type == "mainspec") then
-            self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
-        end
-    end
-    self:Print(" ")
-    self:Print("=== Off Spec ===")
-    for i=1, #GoodEPGP.bids do
-        local bid = GoodEPGP.bids[i]
-        if (bid.type == "offspec") then
-            self:Print(bid.player .. " (Prio: " .. bid.prio .. ")")
-        end
-    end
-end
-
 -- Confirm the item should be looted to player
 function GoodEPGP:ConfirmAwardItem(playerName, type)
     -- Callback is anonymous function that awards the item
-    GoodEPGP:ConfirmAction(function(playerName, type) 
+    GoodEPGP:HideBidFrame()
+    local confirmString = "Are you sure you want to loot this item to " .. playerName .. " as " .. type .. "?"
+    GoodEPGP:ConfirmAction(confirmString, function() 
         GoodEPGP:AwardItem(playerName, type)
+    end,
+    function() 
+        GoodEPGP:UpdateBidFrame()
     end)
 end
 
@@ -688,6 +674,148 @@ function GoodEPGP:GetStandingsByClass(class)
     return classStandings
 end
 
+function GoodEPGP:CreateBidFrame()
+    local AceGUI = LibStub("AceGUI-3.0")
+    GoodEPGP.bidFrame = AceGUI:Create("Frame")
+    GoodEPGP.bidFrame:SetTitle("GoodEPGP Bids")
+    GoodEPGP.bidFrame:SetStatusText("Current bids for " .. GoodEPGP.activeItem)
+    GoodEPGP.bidFrame:SetCallback("OnClose", function(widget) 
+        AceGUI:Release(widget) 
+        GoodEPGP.bidFrame = nil
+    end)
+    GoodEPGP.bidFrame:SetLayout("Flow")
+end
+
+function GoodEPGP:HideBidFrame()
+    local AceGUI = LibStub("AceGUI-3.0")
+    AceGUI:Release(GoodEPGP.bidFrame) 
+    GoodEPGP.bidFrame = nil
+end
+
+function GoodEPGP:UpdateBidFrame()
+    local AceGUI = LibStub("AceGUI-3.0")
+
+    -- Sort by prio
+    table.sort(GoodEPGP.bids, function(a, b)
+        return a.prio > b.prio
+    end)
+
+    -- Create or reset bid frame
+    if (GoodEPGP.bidFrame ~= nil) then
+        AceGUI:Release(GoodEPGP.bidFrame)
+    end
+    GoodEPGP:CreateBidFrame()
+
+    -- Add title
+    GoodEPGP:AddBidFrameTitle("Main Spec")
+
+    -- Add Header
+    GoodEPGP:AddBidFrameHeader()
+
+    -- Main Spec
+    for i=1, #GoodEPGP.bids do
+        local bid = GoodEPGP.bids[i]
+        if (bid.type == "mainspec") then
+           GoodEPGP:AddBidLine(bid, "ms")
+        end
+    end
+
+    -- Add title
+    GoodEPGP:AddBidFrameTitle("Off Spec")
+        
+    -- Add Header
+    GoodEPGP:AddBidFrameHeader()
+
+    -- Off Spec
+    for i=1, #GoodEPGP.bids do
+        local bid = GoodEPGP.bids[i]
+        if (bid.type == "offspec") then
+           GoodEPGP:AddBidLine(bid, "os")
+        end
+    end
+end
+
+function GoodEPGP:AddBidFrameTitle(title)
+    local AceGUI = LibStub("AceGUI-3.0")
+    local titleLabel = AceGUI:Create("Label")
+    titleLabel:SetText(title)
+    titleLabel:SetFullWidth(true)
+    titleLabel:SetJustifyH("Left")
+    titleLabel:SetFont("Fonts\\FRIZQT__.TTF", 14)
+    GoodEPGP.bidFrame:AddChild(titleLabel)
+end
+
+function GoodEPGP:AddBidFrameHeader()
+    local AceGUI = LibStub("AceGUI-3.0")
+
+    -- Our table of header data (width, label)
+    local headers = {
+        {150, ""},
+        {200, "Player"},
+        {150, "Level/Class"},
+        {50, "EP"},
+        {50, "GP"},
+        {50, "Prio"}
+    }
+
+    -- Generate header labels
+    for key, value in pairs(headers) do
+        local headerLabel = AceGUI:Create("Label")
+        headerLabel:SetText(value[2])
+        headerLabel:SetWidth(value[1])
+        GoodEPGP.bidFrame:AddChild(headerLabel)
+    end
+end
+
+
+function GoodEPGP:AddBidLine(bid, bidType)
+    local AceGUI = LibStub("AceGUI-3.0")
+    local raidIndex = GoodEPGP:GetRaidIndexByName(bid.player)
+    -- if player isn't in raid, just continue
+    if (raidIndex ~= nil) then
+        local raidInfo = GoodEPGP.raidRoster[raidIndex]
+
+        local assignButton = AceGUI:Create("Button")
+        assignButton:SetText("Assign")
+        assignButton:SetWidth(100)
+        assignButton:SetCallback("OnClick", function() 
+            GoodEPGP:ConfirmAwardItem(bid.player, bidType)
+        end)
+
+        local spacerLabel = AceGUI:Create("Label")
+        spacerLabel:SetText(" ")
+        spacerLabel:SetWidth(50)
+
+        local playerLabel = AceGUI:Create("Label")
+        playerLabel:SetText(bid.player)
+        playerLabel:SetWidth(200)
+
+        local classLabel = AceGUI:Create("Label")
+        classLabel:SetText("Level " .. raidInfo.level .. " " .. raidInfo.class)
+        classLabel:SetWidth(150)
+
+        local epLabel = AceGUI:Create("Label")
+        epLabel:SetText(bid.ep)
+        epLabel:SetWidth(50)
+
+        local gpLabel = AceGUI:Create("Label")
+        gpLabel:SetText(bid.gp)
+        gpLabel:SetWidth(50)
+
+        local prioLabel = AceGUI:Create("Label")
+        prioLabel:SetText(bid.prio)
+        prioLabel:SetWidth(50)
+
+        GoodEPGP.bidFrame:AddChild(assignButton)
+        GoodEPGP.bidFrame:AddChild(spacerLabel)
+        GoodEPGP.bidFrame:AddChild(playerLabel)
+        GoodEPGP.bidFrame:AddChild(classLabel)
+        GoodEPGP.bidFrame:AddChild(epLabel)
+        GoodEPGP.bidFrame:AddChild(gpLabel)
+        GoodEPGP.bidFrame:AddChild(prioLabel)
+    end
+end
+
 -- == UTILITY FUNCTIONS ==
 
 -- Capitalize the first letter of a word, lowercase the rest.
@@ -765,10 +893,10 @@ function GoodEPGP:SplitString(string, delimiter)
     return result;
 end
 
-function GoodEPGP:ConfirmAction(acceptCallback, cancelCalback)
+function GoodEPGP:ConfirmAction(confirmString, acceptCallback, cancelCalback)
     StaticPopupDialogs["CONFIRM_ACTION"] ={
-        preferredIndex = 3,
-        text = "-",
+        preferredIndex = 5,
+        text = confirmString,
         button1 = "Yes",
         button2 = "No",
         OnAccept = acceptCallback,
@@ -778,7 +906,6 @@ function GoodEPGP:ConfirmAction(acceptCallback, cancelCalback)
         showAlert = true
     }
 
-    StaticPopupDialogs["CONFIRM_ACTION"].text =  "Hello world"
     StaticPopup_Show("CONFIRM_ACTION")      
 end
 
