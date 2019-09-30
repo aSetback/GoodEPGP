@@ -18,7 +18,7 @@ function GoodEPGP:OnEnable()
         ["trigger"] = "!gep",
         ["decayPercent"] = .1,
         ["minGP"] = 100,
-        ["debugEnabled"] = 1
+        ["debugEnabled"] = 0
     }
 
     -- Load message
@@ -677,7 +677,7 @@ end
 function GoodEPGP:CreateBidFrame()
     local AceGUI = LibStub("AceGUI-3.0")
     GoodEPGP.bidFrame = AceGUI:Create("Frame")
-    GoodEPGP.bidFrame:SetTitle("GoodEPGP Bids")
+    GoodEPGP.bidFrame:SetTitle("GoodEPGP")
     GoodEPGP.bidFrame:SetStatusText("Current bids for " .. GoodEPGP.activeItem)
     GoodEPGP.bidFrame:SetCallback("OnClose", function(widget) 
         AceGUI:Release(widget) 
@@ -720,6 +720,9 @@ function GoodEPGP:UpdateBidFrame()
         end
     end
 
+    -- Add spacer
+    GoodEPGP:AddBidFrameTitle(" ")
+
     -- Add title
     GoodEPGP:AddBidFrameTitle("Off Spec")
         
@@ -750,12 +753,12 @@ function GoodEPGP:AddBidFrameHeader()
 
     -- Our table of header data (width, label)
     local headers = {
-        {150, ""},
         {200, "Player"},
         {150, "Level/Class"},
         {50, "EP"},
         {50, "GP"},
-        {50, "Prio"}
+        {50, "Prio"},
+        {150, ""}
     }
 
     -- Generate header labels
@@ -804,15 +807,14 @@ function GoodEPGP:AddBidLine(bid, bidType)
 
         local prioLabel = AceGUI:Create("Label")
         prioLabel:SetText(bid.prio)
-        prioLabel:SetWidth(50)
+        prioLabel:SetWidth(100)
 
-        GoodEPGP.bidFrame:AddChild(assignButton)
-        GoodEPGP.bidFrame:AddChild(spacerLabel)
         GoodEPGP.bidFrame:AddChild(playerLabel)
         GoodEPGP.bidFrame:AddChild(classLabel)
         GoodEPGP.bidFrame:AddChild(epLabel)
         GoodEPGP.bidFrame:AddChild(gpLabel)
         GoodEPGP.bidFrame:AddChild(prioLabel)
+        GoodEPGP.bidFrame:AddChild(assignButton)
     end
 end
 
