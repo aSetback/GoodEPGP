@@ -31,6 +31,7 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("LOOT_OPENED")
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
+    self:RegisterEvent("RAID_ROSTER_UPDATE")
     
     -- Build Guild Roster
     GoodEPGP:GuildRoster()
@@ -46,6 +47,12 @@ function GoodEPGP:GUILD_ROSTER_UPDATE()
     GoodEPGP:Debug('Guild Roster has been updated.')
     -- Rebuild our guild roster table
     GoodEPGP:GuildRoster()
+end
+
+function GoodEPGP:RAID_ROSTER_UPDATE()
+    GoodEPGP:Debug('Raid Roster has been updated.')
+    -- Rebuild our guild roster table
+    GoodEPGP:RaidRoster()
 end
 
 -- Event handler for being whispered
@@ -184,7 +191,7 @@ function GoodEPGP:LOOT_OPENED()
 	local n = GetNumLootItems()
     for i = 1, n do
         local buttonName = "LootButton" .. tostring(i)
-
+        
         local buttonExists = false
         for j = 0, #GoodEPGP.lootButtons do
             if (GoodEPGP.lootButtons[j] == buttonName) then
@@ -194,9 +201,12 @@ function GoodEPGP:LOOT_OPENED()
 
         if (buttonExists == false) then
             table.insert(GoodEPGP.lootButtons, buttonName)
-            _G[buttonName]:HookScript("OnClick", function(button, data)                
-                GoodEPGP:LootClick(button, data, i);
-            end)    
+            local button = _G[buttonName]
+            if (button ~= nil) then
+                _G[buttonName]:HookScript("OnClick", function(button, data)                
+                    GoodEPGP:LootClick(button, data, button.slot);
+                end)    
+            end
         end
 	end
 end
@@ -212,26 +222,14 @@ function GoodEPGP:LootClick(button, data, key)
     -- Set our object vars to remember what's being currently looted.
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
+    local itemQuality = select(3, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
     GoodEPGP.activeItemIndex = key
     GoodEPGP.activeItem = item   
 
-    -- Check if shift key is being held down
-    if (IsShiftKeyDown()) then
-        -- Ctrl + Right Click
-        if (data == "LeftButton") then 
-            GoodEPGP:LootToSelf()
-            return
-        end
-    end
-
-    -- Check if ctrl key is being held down
-    if (IsControlKeyDown()) then
-        -- Ctrl + Left Click
-        if (data == "LeftButton") then
-            GoodEPGP:RandomRollLoot()
-            return
-        end
+    -- You can only ML stuff that's uncommon +
+    if (itemQuality <= 1) then
+        return
     end
 
     -- If the alt key is being run down, run a EPGP  bid
@@ -242,7 +240,33 @@ function GoodEPGP:LootClick(button, data, key)
             return
         end
     end
+
+    -- Don't allow random roll / loot to self if quality >= 5 (Epic)
+    if (itemQuality >= 5) then
+        return
+    end
+
+    -- Check if shift key is being held down
+    if (IsShiftKeyDown()) then
+        -- Ctrl + Right Click
+        if (data == "LeftButton") then 
+            GoodEPGP:LootToSelf()
+            return
+        end
+    end
+
+
+    -- Check if ctrl key is being held down
+    if (IsControlKeyDown()) then
+        -- Ctrl + Left Click
+        if (data == "LeftButton") then
+            GoodEPGP:RandomRollLoot()
+            return
+        end
+    end
 end
+
+
 
 -- Start a bid for the current item
 function GoodEPGP:StartBid(itemID)
@@ -273,18 +297,26 @@ end
 function GoodEPGP:RandomRollLoot()
     -- Roll for the loot
     local randomIndex = math.random(1, GetNumGroupMembers())
+    GoodEPGP:Debug("Rolled: " .. randomIndex)
 
     -- Retrieve player index
     local playerName = GoodEPGP.raidRoster[randomIndex].player
+    GoodEPGP:Debug("Winner: " .. playerName)
 
     -- Retrieve player's master loot index
     candidateIndex = GoodEPGP:MasterLootCandidateByName(playerName)
+    
+    -- If empty, candidate was not in range.  Try again.
+    if (candidateIndex == nil) then
+        GoodEPGP:RandomRollLoot()
+        return
+    end
 
     -- Announce winner
-    GoodEPGP:WidestAudience("Random Roll (" .. randomIndex .. ") -- Item: " .. GoodEPGP.activeItem .. ", Player: " .. playerName, false)
+    GoodEPGP:WidestAudience("Roll: " .. randomIndex .. " -- Range: 1-" .. GetNumGroupMembers() .. " -- Item: " .. GoodEPGP.activeItem .. " -- Winner: " .. playerName .. ' -- Candidate Index: ' .. camdidateIndex .. ' -- Item Index: ' .. GoodEPGP.activeItemIndex, false)
 
     -- Award the item
-    GiveMasterLoot(GoodEPGP.activeItemIndex, randomIndex)
+    GiveMasterLoot(GoodEPGP.activeItemIndex, candidateIndex)
 end
 
 -- Get an item's GP price by item ID
