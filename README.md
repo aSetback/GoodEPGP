@@ -26,10 +26,10 @@ Whisper Commands:
 
 Use:
 
-Shift + Left Click on an item in your loot box.  This will create a raid warning asking for bids, and will open the bid screen
+Shift + Left Click on an item in your loot window.  This will create a raid warning asking for bids, and will open the bid screen.
 
 Players can then message you + or - to bid on an item, and the bids will show up on the screen
 
 You can press the 'Assign' button to assign the loot.
 
-Hitting 'Yes' will award the loot, and will assign the GP cost to the player.
+Hitting 'Yes' on the confirmation box will award the loot, and will assign the GP cost to the player.
