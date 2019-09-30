@@ -203,37 +203,88 @@ end
 
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
-    -- If the alt key is being run down, run a EPGP  bid
-    if not IsAltKeyDown() then 
-        return true;
-    end
-    
     -- If it's just currency, or the slot is empty, just return.
     local item = GetLootSlotLink(key)
     if (item == nil) then
-        return true;
+        return
     end
     
+    -- Set our object vars to remember what's being currently looted.
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
-    local price = GoodEPGP:GetPrice(itemID)
-    local offspecPrice = math.floor(price * .25)
-    GoodEPGP.activeBid = true
     GoodEPGP.activeItemIndex = key
     GoodEPGP.activeItem = item   
-    GoodEPGP.activePrice = price
-    GoodEPGP.activeOffspecPrice = offspecPrice
-    GoodEPGP.bids = {}
 
-    if (data == "LeftButton") then
-        GoodEPGP:WidestAudience("Whisper me + to bid on " .. itemLink .. " as main spec. (Cost: " .. price .. " GP)")
-    else 
-        GoodEPGP:WidestAudience("Whisper me - to bid on " .. itemLink .. " as off spec.  (Cost: " .. offspecPrice .. " GP)")
+    -- Check if shift key is being held down
+    if (IsShiftKeyDown()) then
+        -- Ctrl + Right Click
+        if (data == "LeftButton") then 
+            GoodEPGP:LootToSelf()
+            return
+        end
     end
 
+    -- Check if ctrl key is being held down
+    if (IsControlKeyDown()) then
+        -- Ctrl + Left Click
+        if (data == "LeftButton") then
+            GoodEPGP:RandomRollLoot()
+            return
+        end
+    end
+
+    -- If the alt key is being run down, run a EPGP  bid
+    if (IsAltKeyDown()) then 
+        -- Alt + Left Click
+        if (data == "LeftButton") then
+            GoodEPGP:StartBid(itemID)
+            return
+        end
+    end
+end
+
+-- Start a bid for the current item
+function GoodEPGP:StartBid(itemID)
+    local price = GoodEPGP:GetPrice(itemID)
+    local offspecPrice = math.floor(price * .25)
+    GoodEPGP.activePrice = price
+    GoodEPGP.activeOffspecPrice = offspecPrice
+    GoodEPGP.activeBid = true
+    GoodEPGP.bids = {}
+
+    GoodEPGP:WidestAudience("Whisper me + for main spec, - for off spec to bid on " .. GoodEPGP.activeItem .. ". (MS Cost: " .. price .. " GP)")
     GoodEPGP:UpdateBidFrame()
+end
+
+-- Loot current item to self
+function GoodEPGP:LootToSelf()
+    -- Get player's name
+    local playerName = UnitName("player")
     
+    -- Retrieve player's master loot index
+    candidateIndex = GoodEPGP:MasterLootCandidateByName(playerName)
+
+    -- Award the item
+    GiveMasterLoot(GoodEPGP.activeItemIndex, candidateIndex)
+end
+
+-- Random roll out item to raid
+function GoodEPGP:RandomRollLoot()
+    -- Roll for the loot
+    local randomIndex = math.random(1, GetNumGroupMembers())
+
+    -- Retrieve player index
+    local playerName = GoodEPGP.raidRoster[randomIndex].player
+
+    -- Retrieve player's master loot index
+    candidateIndex = GoodEPGP:MasterLootCandidateByName(playerName)
+
+    -- Announce winner
+    GoodEPGP:WidestAudience("Random Roll (" .. randomIndex .. ") -- Item: " .. GoodEPGP.activeItem .. ", Player: " .. playerName, false)
+
+    -- Award the item
+    GiveMasterLoot(GoodEPGP.activeItemIndex, randomIndex)
 end
 
 -- Get an item's GP price by item ID
@@ -843,10 +894,13 @@ function GoodEPGP:Round(num, places)
 end
 
 -- Determine which chat channel should be used to display a message
-function GoodEPGP:WidestAudience(msg)
+function GoodEPGP:WidestAudience(msg, rw)
+    if (rw == nil) then
+        rw = true
+    end
     local channel = "GUILD"
     if UnitInRaid("player") then
-        if (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+        if ((UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) and rw == true) then
             channel = "RAID_WARNING"
         else
             channel = "RAID"
