@@ -2,7 +2,6 @@ local prices = {
   ----------------------
   --- Tier 1         ---
   ----------------------
-  [16665] = {0, "Tome of Tranquilizing Shot"};
   [16795] = {108, "Arcanist Crown"};
   [16796] = {108, "Arcanist Leggings"};
   [16797] = {108, "Arcanist Mantle"};
@@ -155,6 +154,7 @@ local prices = {
   -------------------
   --- Molten Core ---
   -------------------
+  [16665] = {0, "Tome of Tranquilizing Shot"};
   [17063] = {432, "Band of Accuria"};
   [17065] = {324, "Medallion of Steadfast Might"};
   [17066] = {216, "Drillborer Disk"};
@@ -176,8 +176,8 @@ local prices = {
   [17110] = {72, "Seal of the Archmagus"};
   [17204] = {500, "Eye of Sulfuras"};
   [18203] = {144, "Eskhandar's Right Claw"};
-  [18563] = {0, "Bindings of the Windseeker"};
-  [18564] = {0, "Bindings of the Windseeker"};
+  [18563] = {250, "Bindings of the Windseeker"};
+  [18564] = {250, "Bindings of the Windseeker"};
   [18646] = {300, "The Eye of Divinity"};
   [18703] = {300, "Ancient Petrified Leaf"};
   [18803] = {108, "Finkle's Lava Dredger"};
