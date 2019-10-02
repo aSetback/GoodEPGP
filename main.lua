@@ -18,13 +18,14 @@ function GoodEPGP:OnEnable()
         ["trigger"] = "!gep",
         ["decayPercent"] = .1,
         ["minGP"] = 100,
-        ["debugEnabled"] = 0
+        ["debugEnabled"] = 1
     }
 
     -- Load message
     GoodEPGP:Debug("Add-on started.")
 
     -- Fire off the event to update guild roster
+    GoodEPGP.guildRosterFirstLoad = true
     GuildRoster()
 
     -- Events
@@ -38,19 +39,22 @@ function GoodEPGP:OnEnable()
 
     -- Build Raid Roster
     GoodEPGP:RaidRoster()
-    
+
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
+
+    GoodEPGP:ImportStandings()
 end
 
 function GoodEPGP:GUILD_ROSTER_UPDATE()
-    GoodEPGP:Debug('Guild Roster has been updated.')
     -- Rebuild our guild roster table
     GoodEPGP:GuildRoster()
+
+    -- Attempt to import any records found in SavedVariables
+    GoodEPGP:ImportRecords()
 end
 
 function GoodEPGP:RAID_ROSTER_UPDATE()
-    GoodEPGP:Debug('Raid Roster has been updated.')
     -- Rebuild our guild roster table
     GoodEPGP:RaidRoster()
 end
@@ -61,6 +65,10 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     local trigger = select(1, strsplit(" ", whisperText))
     local player = select(1, strsplit("-", playerName))
     if (trigger == GoodEPGP.config.trigger) then
+        if (string.find(whisperText, " ") == nil) then
+            return
+        end
+        
         local command = string.sub(whisperText, string.find(whisperText, " ") + 1)
         GoodEPGP:PublicCommands(command, player)
         return true
@@ -128,6 +136,11 @@ function GoodEPGP:PrivateCommands(commandMessage)
     if (command == "reset") then
         GoodEPGP:ResetEPGP()
     end
+    
+    -- Charge a player for an item
+    if (command == "charge") then
+        GoodEPGP:ChargeForItem(arg1, arg2, arg3)
+    end
 end
 
 -- Handle public command parsing / routing
@@ -143,12 +156,18 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
 
     -- Full string after the command
     if (string.find(commandMessage, " ") ~= nil) then
-        local argString = string.sub(commandMessage, string.find(commandMessage, " ") + 1)
+        argString = string.sub(commandMessage, string.find(commandMessage, " ") + 1)
     end
 
     -- Set response type
     if (playerName ~= nil) then
         type = "whisper"
+    end
+
+    -- Test: Roll
+    if (command == "roll") then
+        GoodEPGP:RandomRollLoot()
+        return
     end
 
     -- Item cost lookup
@@ -173,11 +192,6 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
     if (command == "setspec" and playerName ~= nil) then
         GoodEPGP:SetSpec(playerName, arg1)
         return
-    end
-
-    -- Charge a player for an item
-    if (command == "charge") then
-        GoodEPGP:ChargeForItem(arg1, arg2, arg3, type, playerName)
     end
 
     -- None of the if statements triggered, let's assume they want an item lookup
@@ -260,7 +274,7 @@ function GoodEPGP:LootClick(button, data, key)
     if (IsControlKeyDown()) then
         -- Ctrl + Left Click
         if (data == "LeftButton") then
-            GoodEPGP:RandomRollLoot()
+            -- GoodEPGP:RandomRollLoot()
             return
         end
     end
@@ -418,7 +432,9 @@ function GoodEPGP:GuildRoster()
         local player = select(1, GetGuildRosterInfo(i))
         player = select(1, strsplit("-", player))
         local note  = select(8, GetGuildRosterInfo(i))
+        local level = select(4, GetGuildRosterInfo(i))
         local class = select(5, GetGuildRosterInfo(i))
+        local spec = select(7, GetGuildRosterInfo(i))
         local ep = select(1, strsplit(",", note))
         local gp = select(2, strsplit(",", note))
         ep = tonumber(ep)
@@ -435,12 +451,41 @@ function GoodEPGP:GuildRoster()
             reset = true;
         end
         local pr = GoodEPGP:Round(ep/gp, 2)
-        GoodEPGP.guildRoster[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class}
+        GoodEPGP.guildRoster[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level}
         
         if (reset) then
             GoodEPGP:SetEPGP(i, ep, gp)
         end
     end
+
+    table.sort(GoodEPGP.guildRoster, function(a, b)
+        return a.pr > b.pr
+    end)
+
+    local raiderList = {}
+    GoodEPGP.raiderList = GoodEPGP.guildRoster
+    for key, player in pairs(GoodEPGP.guildRoster) do
+        if (tonumber(player.level) > 55 and tonumber(player.ep) > 0) then
+            table.insert(raiderList, player)
+        end
+    end
+
+    GoodEPGPStandings = GoodEPGP:ConvertToJSON(raiderList)
+end
+
+function GoodEPGP:ConvertToJSON(table) 
+    local jsonString = ""
+    jsonString = jsonString .. "["
+    for key, playerTable in pairs(table) do
+        jsonString = jsonString .. "{"
+        for infoKey, infoValue in pairs(playerTable) do
+            jsonString = jsonString .. "\"" .. infoKey .. "\": \"" .. infoValue .. "\", "  
+        end
+        jsonString = jsonString:sub(1, -3) .. "},"
+    end
+    jsonString = jsonString:sub(1, -2) .. "]"
+
+    return jsonString
 end
 
 -- Retrieve the current raid roster, load to GoodEPGP.raidRoster
@@ -475,7 +520,8 @@ end
 function GoodEPGP:SetEPGP(index, ep, gp)
     -- Format our officer note
     local epgpString = tostring(ep) .. "," .. tostring(gp)
-    
+
+    self:Print('Updated ' .. GoodEPGP.guildRoster[index].player .. ' to ' .. epgpString);
     -- Update the officer note
     GuildRosterSetOfficerNote(index, epgpString)
     
@@ -483,6 +529,23 @@ function GoodEPGP:SetEPGP(index, ep, gp)
     GoodEPGP.guildRoster[index].ep = ep
     GoodEPGP.guildRoster[index].gp = gp
     GoodEPGP.guildRoster[index].pr = GoodEPGP:Round(tonumber(ep) / tonumber(gp), 2)
+end
+
+-- Set a player's EPGP by name (used on mass updates)
+function GoodEPGP:SetEPGPByName(player, ep, gp)
+    for i = 1, GetNumGuildMembers() do
+        local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(i)
+        if (player == select(1, strsplit("-", name))) then
+            -- Format our officer note
+            local epgpString = tostring(ep) .. "," .. tostring(gp)
+
+            -- Inform to console
+            GoodEPGP:Debug('Updated ' .. player .. ' to ' .. epgpString);
+
+            -- Update the officer note
+            GuildRosterSetOfficerNote(i, epgpString)
+        end
+    end
 end
 
 -- Set a player's spec
@@ -526,7 +589,7 @@ function GoodEPGP:AddGPByName(name, amount)
     end
     GoodEPGP:AddGPByIndex(index, amount)
     GoodEPGP:Debug("Added " .. amount .. " GP to " .. name .. ".")
-    GoodEPGP:PlayerInfo(name)
+    -- GoodEPGP:PlayerInfo(name)
 end
 
 -- Add GP to a player based on their index in guild roster
@@ -555,7 +618,7 @@ function GoodEPGP:GetRaidIndexByName(name)
             end
         end
         if (index == 0) then
-            GoodEPGP:Debug("Unable to find " .. name)
+            GoodEPGP:Debug("Raid: Unable to find " .. name)
         end
     end
     return index
@@ -573,7 +636,7 @@ function GoodEPGP:GetGuildIndexByName(name)
             end
         end
         if (index == 0) then
-            GoodEPGP:Debug("Unable to find " .. name)
+            GoodEPGP:Debug("Guild: Unable to find " .. name)
         end
     end
     return index
@@ -591,7 +654,11 @@ end
 function GoodEPGP:Decay()
     -- Loop through guild roster, decay all members
     for key, member in pairs(GoodEPGP.guildRoster) do
-        GoodEPGP:DecayByGuildIndex(key)
+        if (member.ep > 0) then
+            
+            self:Print('Decay: ' .. member.player)
+            GoodEPGP:DecayByName(member.player, member.ep, member.gp)
+        end
     end
 
     -- Announce to guild
@@ -600,19 +667,13 @@ function GoodEPGP:Decay()
 end
 
 -- Decay a player
-function GoodEPGP:DecayByGuildIndex(index)
-    if (GoodEPGP.guildRoster[index] == nil) then
-        GoodEPGP:Debug('Unabled to find index: ' .. index)
-        return
-    end
-
-    local ep = GoodEPGP.guildRoster[index].ep * (1 - tonumber(GoodEPGP.config.decayPercent))
-    local gp = GoodEPGP.guildRoster[index].gp * (1 - tonumber(GoodEPGP.config.decayPercent))
+function GoodEPGP:DecayByName(name, ep, gp)
+    ep = ep * (1 - tonumber(GoodEPGP.config.decayPercent))
+    gp = gp * (1 - tonumber(GoodEPGP.config.decayPercent))
     if (gp < GoodEPGP.config.minGP) then
         gp = GoodEPGP.config.minGP
     end
-    local prio = GoodEPGP:Round(ep / gp, 2)
-    GoodEPGP:SetEPGP(index, ep, gp)
+    GoodEPGP:SetEPGPByName(name, ep, gp)
 end
 
 -- Get a player's current EP/GP standing. Name = player to lookup, type = (whisper|console), playerName = player to whisper back with information
@@ -667,14 +728,14 @@ function GoodEPGP:ConfirmAwardItem(playerName, type)
         GoodEPGP:AwardItem(playerName, type)
     end,
     function() 
-        GoodEPGP:UpdateBidFrame()
+        GoodEPGP:UpdateBidFrame() 
     end)
 end
 
 -- Award the current item up for bids to player by namne.  priceType = (ms|os)
 function GoodEPGP:AwardItem(playerName, priceType)
 
-    -- Format player's name
+    -- Format player's name 
     playerName = GoodEPGP:UCFirst(playerName)
 
     -- Retrive player's candidate index by name
@@ -684,25 +745,24 @@ function GoodEPGP:AwardItem(playerName, priceType)
     GiveMasterLoot(GoodEPGP.activeItemIndex, candidateIndex)
     
     --- Award main spec or offspec GP
-    local price = GoodEPGP:GetPrice(itemID)
-    if (priceType == 'os') then
-        price = GoodEPGP.Round(price * .25, 0)
-    end
-    GoodEPGP:AddGPByName(playerName, price)
+
+    GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem, priceType)
 end
 
 -- Charge a player for an item
 function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
     local itemID = GoodEPGP:GetItemID(itemString)
     if (itemID == nil) then
-        GoodEPGP:HandleOutput('Could not find item.', type, member)
+        GoodEPGP:HandleOutput('Could not find item: ' .. itemString, type, member)
+        return
     end
 
     local price = GoodEPGP:GetPrice(itemID)
-    if (priceType == 'os') then
+    if (priceType == 'os') then 
         price = GoodEPGP.Round(price * .25, 0)
     end
 
+    -- GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
     GoodEPGP:AddGPByName(member, price)
 end
 
@@ -901,6 +961,45 @@ function GoodEPGP:AddBidLine(bid, bidType)
     end
 end
 
+function GoodEPGP:ImportRecords()
+    -- If we don't have a guild roster, wait to have one.
+    if (GoodEPGP.guildRoster == nil or #GoodEPGP.guildRoster == 0) then
+        return
+    end    
+
+    -- Don't bother unless we have records
+    if (GoodEPGPImport == nil or #GoodEPGPImport == 0) then
+        return
+    end
+
+    -- Loop through import data
+    for key, value in pairs(GoodEPGPImport) do
+        GoodEPGP:ChargeForItem(value["name"], value["item"], value["type"])
+    end
+
+    -- Clear out our import variable so we don't import twice
+    GoodEPGPImport = {}
+end
+
+function GoodEPGP:ImportStandings()
+    -- Don't bother unless we have records
+    if (GoodEPGPStandingsImport == nil or #GoodEPGPStandingsImport == 0) then
+        return
+    end
+
+    -- Inform debug that we're importing.
+    GoodEPGP:Debug('Importing standings.')
+
+    -- Loop through import data
+    for key, value in pairs(GoodEPGPStandingsImport) do
+        if (tonumber(value.ep) > 0) then
+            GoodEPGP:SetEPGPByName(value.player, value.ep, value.gp)
+        end
+    end
+
+    GoodEPGPStandingsImport = {}
+end
+
 -- == UTILITY FUNCTIONS ==
 
 -- Capitalize the first letter of a word, lowercase the rest.
@@ -968,7 +1067,7 @@ function GoodEPGP:HandleOutput(string, type, playerName)
     if (type == "whisper") then
         GoodEPGP:SendWhisper(string, playerName)
     else
-        self:Print(string)
+        self:Print('GEPGP: ' .. string)
     end
 end
 
@@ -981,6 +1080,7 @@ function GoodEPGP:SplitString(string, delimiter)
     return result;
 end
 
+-- Put up a confirmation modal
 function GoodEPGP:ConfirmAction(confirmString, acceptCallback, cancelCalback)
     StaticPopupDialogs["CONFIRM_ACTION"] ={
         preferredIndex = 5,
