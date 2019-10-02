@@ -217,16 +217,16 @@ local prices = {
   [19144] = {108, "Sabatons of the Flamewalker"};
   [19145] = {378, "Robe of Volatile Power"};
   [19146] = {72, "Wristguards of Stability"};
-  [19147] = {72, "Ring of Spell Power"};
+  [19147] = {252, "Ring of Spell Power"};
 
   ---------------------
   --- Onyxia/World  ---
   ---------------------
   [17064] = {468, "Shard of the Scale"};
   [17067] = {108, "Ancient Cornerstone Grimoire"};
-  [17068] = {288, "Deathbringer"};
+  [17068] = {212, "Deathbringer"};
   [17070] = {324, "Fang of the Mystics"};
-  [17075] = {212, "Vis'kag the Bloodletter"};
+  [17075] = {288, "Vis'kag the Bloodletter"};
   [17078] = {180, "Sapphiron Drape"};
   [17111] = {144, "Blazefury Medallion"};
   [17112] = {180, "Empyrean Demolisher"};
