@@ -33,7 +33,9 @@ function GoodEPGP:OnEnable()
     GoodEPGP:ImportStandings()
 end
 
--- == EVENT HANDLERS ==
+-- =====================
+-- EVENT HANDLERS
+-- =====================
 
 -- Re-compile our internal EPGP table
 function GoodEPGP:GUILD_ROSTER_UPDATE()
@@ -106,7 +108,9 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     GoodEPGP:UpdateBidFrame()
 end
 
--- == COMMAND ROUTING ==
+-- =====================
+-- COMMAND ROUTING
+-- =====================
 
 -- Handle private command parsing/routing
 function GoodEPGP:PrivateCommands(commandMessage)
@@ -114,6 +118,8 @@ function GoodEPGP:PrivateCommands(commandMessage)
     local arg1 = select(2, strsplit(" ", commandMessage))
     local arg2 = select(3, strsplit(" ", commandMessage))
     local arg3 = select(4, strsplit(" ", commandMessage))
+    
+    -- Add EP to a player
     if (command == "ep") then
         if (arg1 ~= "" and arg2 ~= "") then
             if (arg1:lower() == "raid") then
@@ -125,22 +131,24 @@ function GoodEPGP:PrivateCommands(commandMessage)
             end
         end
     end
+
+    if (command == "import") then
+        GoodEPGP:ImportRecords()
+    end
+
+    -- Add GP to a player
     if (command == "gp") then
         if (arg1 ~= "" and arg2 ~= "") then
             GoodEPGP:AddGPByName(arg1, arg2)
         end
     end
-    if (command == "award") then
-        if (arg1 ~= "" and arg1 ~= nil) then
-            if (arg2 == "" or arg2 == nil) then
-                arg2 = '+'
-            end
-            GoodEPGP:ConfirmAwardItem(arg1, arg2)
-        end
-    end
+
+    -- Decay EPGP standings
     if (command == "decay") then
         GoodEPGP:Decay()
     end
+
+    -- Reset EPGP standings
     if (command == "reset") then
         GoodEPGP:Reset()
     end
@@ -198,11 +206,14 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
 
     -- None of the if statements triggered, let's assume they want an item lookup
     GoodEPGP:ShowPrice(commandMessage, type, playerName)
-
+    GoodEPGP:PlayerInfo(commandMessage, type, playerName)
+    GoodEPGP:ShowStandingsByClass(commandMessage, 1, type, playerName)
 
 end
 
--- == PRIVATE FUNCTIONS ==
+-- =====================
+-- PRIVATE FUNCTIONS
+-- =====================
 
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
@@ -248,8 +259,6 @@ function GoodEPGP:LootClick(button, data, key)
         end
     end
 end
-
-
 
 -- Start a bid for the current item
 function GoodEPGP:StartBid(itemID)
@@ -366,28 +375,42 @@ end
 function GoodEPGP:ExportGuildRoster()
     GoodEPGP.standings = {};
     for i = 1, GetNumGuildMembers() do
+        -- Retrieve information about our player, remove the realm name
         local player = select(1, GetGuildRosterInfo(i))
         if (player ~= nil) then
             player = select(1, strsplit("-", player))
         end
-        local note  = select(8, GetGuildRosterInfo(i))
+        local officerNote  = select(8, GetGuildRosterInfo(i))
         local level = select(4, GetGuildRosterInfo(i))
         local class = select(5, GetGuildRosterInfo(i))
         local spec = select(7, GetGuildRosterInfo(i))
-        local ep = select(1, strsplit(",", note))
-        local gp = select(2, strsplit(",", note))
+
+        -- Set initial EPGP
+        if (officerNote == nil or string.find(officerNote, ",") == nil) then
+            officerNote = '0,100'
+            GoodEPGP:SetEPGPByName(player, 0, 100)
+        end
+
+        -- Retrieve the player's EPGP
+        local ep = select(1, strsplit(",", officerNote))
+        local gp = select(2, strsplit(",", officerNote))
         ep = tonumber(ep)
         gp = tonumber(gp)
 
+        -- Just making sure ..
         if (ep == nil) then
             ep = 0
         end
 
+        -- Make sure we're above the min GP.
         if (gp == nil or gp < GoodEPGP.config.minGP) then
             gp = GoodEPGP.config.minGP
         end
+
+        -- Calculate our PR
         local pr = GoodEPGP:Round(ep/gp, 2)
 
+        -- Add the player to our standings table
         GoodEPGP.standings[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level}
     end
 
@@ -498,7 +521,6 @@ function GoodEPGP:SetSpec(player, spec)
         end
     end
     
-    
     -- Loop through and check if this is a valid spec
     local validSpec = false
     for key, value in pairs(GoodEPGP.specs) do
@@ -523,10 +545,9 @@ function GoodEPGP:SetSpec(player, spec)
     return
 end
 
-
 -- Get a player's index within the guild roster
 function GoodEPGP:GetGuildMemberByName(name)
-    local playerInfo = {}
+    local playerInfo
     if (name == nil) then
         GoodEPGP:Debug("Empty name for guild member lookup.")
     else 
@@ -534,7 +555,7 @@ function GoodEPGP:GetGuildMemberByName(name)
             local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
             -- Strip the server name
             guildName = select(1, strsplit("-", guildName))
-            if (guildName == name) then
+            if (guildName:lower() == name:lower()) then
                 local ep = select(1, strsplit(",", officerNote))
                 local gp = select(2, strsplit(",", officerNote))
                 if (ep == nil or gp == nil) then
@@ -606,7 +627,7 @@ end
 -- Output a single line of standings
 function GoodEPGP:ShowPlayerInfo(memberInfo, type, playerName)
     if (memberInfo == nil) then
-        return false
+        return
     end
     local playerString = memberInfo.name .. ": " .. memberInfo.ep .. " EP / " .. memberInfo.gp .. " GP (" .. memberInfo.pr .. " Prio)"
     GoodEPGP:HandleOutput(playerString, type, playerName)
@@ -614,11 +635,11 @@ end
 
 -- Add a certain amount of EP to all players in the raid
 function GoodEPGP:AddEPToRaid(amount)
-    for i=1, #GoodEPGP.raidRoster do
-        local guildIndex = GoodEPGP:GetGuildIndexByName(GoodEPGP.raidRoster[i].player)
-        if (guildIndex ~= nil) then
-            GoodEPGP:Debug("Added " .. amount .. " EP to " .. GoodEPGP.raidRoster[i].player .. ".")
-            GoodEPGP:AddEPByIndex(guildIndex, amount)
+    for i = 1, GetNumGroupMembers() do
+        local name, _, subgroup, level, class = GetRaidRosterInfo(i);
+        local guildInfo = GoodEPGP:GetGuildMemberByName(name)
+        if (guildInfo ~= nil) then
+            GoodEPGP:AddEPByName(name, amount)
         end
     end
     GoodEPGP:WidestAudience("Added " .. amount .. " EP to entire raid.")
@@ -642,6 +663,8 @@ function GoodEPGP:ConfirmAwardItem(playerName, type)
         GoodEPGP:AwardItem(playerName, type)
     end,
     function() 
+
+
         GoodEPGP:UpdateBidFrame() 
     end)
 end
@@ -668,10 +691,10 @@ function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
 
     local price = GoodEPGP:GetPrice(itemID)
     if (priceType == 'os') then 
-        price = GoodEPGP.Round(price * .25, 0)
+        price = GoodEPGP:Round(price * .25, 2)
     end
 
-    -- GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
+    GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
     GoodEPGP:AddGPByName(member, price)
 end
 
@@ -680,14 +703,13 @@ function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
     -- Retrieve our standings by class(es)
     local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
     if (classStandings == nil or #classStandings == 0) then
-        GoodEPGP:HandleOutput("No results found.", type, playerName)
-        return false
+        return
     end
     
     -- Check if minimum is set and numeric
     minimumPrio = tonumber(minimumPrio)
     if (minimumPrio == nil) then
-        minimumPrio = 1
+        minimumPrio = .1
     end
     
     -- Loop through our classStandings table and show every line above minimum prio
@@ -706,9 +728,14 @@ function GoodEPGP:GetStandingsByClass(class)
     end
 
     local classStandings = {}
-    for key, member in pairs(GoodEPGP.guildRoster) do
+    for i = 1, GetNumGuildMembers() do
+        local name = GetGuildRosterInfo(i)
+        name = select(1, strsplit("-", name))
+        local member = GoodEPGP:GetGuildMemberByName(name)
+        if (member == nil) then
+            return classStandings
+        end
         if (classes ~= nil) then 
-            GoodEPGP.classes = classes
             for classKey, className in pairs(classes) do
                 if (member.class == GoodEPGP:UCFirst(className)) then
                     table.insert(classStandings, member)
@@ -740,6 +767,9 @@ end
 
 function GoodEPGP:HideBidFrame()
     local AceGUI = LibStub("AceGUI-3.0")
+    if (GoodEPGP.bidFrame == nil) then
+        return
+    end
     AceGUI:Release(GoodEPGP.bidFrame) 
     GoodEPGP.bidFrame = nil
 end
@@ -866,11 +896,6 @@ function GoodEPGP:AddBidLine(bid, bidType)
 end
 
 function GoodEPGP:ImportRecords()
-    -- If we don't have a guild roster, wait to have one.
-    if (GoodEPGP.guildRoster == nil or #GoodEPGP.guildRoster == 0) then
-        return
-    end    
-
     -- Don't bother unless we have records
     if (GoodEPGPImport == nil or #GoodEPGPImport == 0) then
         return
@@ -904,7 +929,9 @@ function GoodEPGP:ImportStandings()
     GoodEPGPStandingsImport = {}
 end
 
--- == UTILITY FUNCTIONS ==
+-- =====================
+-- UTILITY FUNCTIONS
+-- =====================
 
 -- Capitalize the first letter of a word, lowercase the rest.
 function GoodEPGP:UCFirst(word)
