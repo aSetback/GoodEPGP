@@ -26,7 +26,9 @@ Whisper Commands:
 
 Use:
 
-Shift + Left Click on an item in your loot window.  This will create a raid warning asking for bids, and will open the bid screen.
+Ctrl + Left Click on an item to self loot it.
+
+Alt + Left Click on an item in your loot window.  This will create a raid warning asking for bids, and will open the bid screen.
 
 Players can then message you + or - to bid on an item, and the bids will show up on the screen
 
