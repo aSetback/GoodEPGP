@@ -42,6 +42,7 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("LOOT_CLOSED")
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
+    -- self:RegisterEvent("CHAT_MSG_LOOT")
     
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
@@ -52,6 +53,31 @@ end
 -- =====================
 -- EVENT HANDLERS
 -- =====================
+
+-- Record and report loot message.
+function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
+    if (text == nil or playerName == nil) then
+        return
+    end
+    
+    -- Parse out item name
+    local itemName = string.match(text, "%[(.-)%]")
+    if (itemName == nil) then
+        return
+    end
+    self:Print(itemName)
+
+    -- Parse out link & rarity
+    local _, itemLink, itemRarity = GetItemInfo(itemName)
+    self:Print(itemLink)
+    self:Print(itemRarity)
+    if (itemRarity == nil) then
+        return
+    end
+
+    -- Output playername, itemLink, rarity
+    self:Print(playerName .. " > " .. itemLink .. " " .. itemRarity)
+end
 
 -- Re-compile our internal EPGP table
 function GoodEPGP:GUILD_ROSTER_UPDATE()
@@ -168,6 +194,11 @@ function GoodEPGP:PrivateCommands(commandMessage)
         GoodEPGP:Decay()
     end
 
+    -- Round all EP & GP
+    if (command == "round") then
+        GoodEPGP:RoundPoints()
+    end
+
     -- Reset EPGP standings
     if (command == "reset") then
         GoodEPGP:Reset()
@@ -235,6 +266,10 @@ end
 -- PRIVATE FUNCTIONS
 -- =====================
 
+function GoodEPGP:HandleLoot(msg)
+    self:Print(msg)
+end
+
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
     -- If it's just currency, or the slot is empty, just return.
@@ -271,13 +306,13 @@ function GoodEPGP:LootClick(button, data, key)
     end
 
     -- Check if ctrl key is being held down
-    if (IsControlKeyDown()) then
-        -- Ctrl + Left Click
-        if (data == "LeftButton") then
-            GoodEPGP:LootToSelf()
-            return
-        end
-    end
+    -- if (IsControlKeyDown()) then
+    --     -- Ctrl + Left Click
+    --     if (data == "LeftButton") then
+    --         GoodEPGP:LootToSelf()
+    --         return
+    --     end
+    -- end
 end
 
 -- Start a bid for the current item
@@ -408,7 +443,7 @@ function GoodEPGP:ExportGuildRoster()
         -- Set initial EPGP
         if (officerNote == nil or string.find(officerNote, ",") == nil) then
             officerNote = '0,100'
-            GoodEPGP:SetEPGPByName(player, 0, 100)
+            -- GoodEPGP:SetEPGPByName(player, 0, 100)
         end
 
         -- Retrieve the player's EPGP
@@ -416,6 +451,10 @@ function GoodEPGP:ExportGuildRoster()
         local gp = select(2, strsplit(",", officerNote))
         ep = tonumber(ep)
         gp = tonumber(gp)
+
+        -- Round to 2 decimal places
+        ep = GoodEPGP:Round(ep, 2)
+        gp = GoodEPGP:Round(gp, 2)
 
         -- Just making sure ..
         if (ep == nil) then
@@ -480,14 +519,21 @@ end
 -- Add EP to a player by their name
 function GoodEPGP:AddEPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
-    GoodEPGP:Debug("Adding " .. amount .. " EP to " .. name .. ".")
+    message = "Adding " .. amount .. " EP to " .. name .. ".";
+    if (amount == nil) then
+        amount = 0
+    end
+    GoodEPGP:Debug(message)
+    SendChatMessage(message, "OFFICER")
     GoodEPGP:SetEPGPByName(name, nil, nil, amount, nil)
 end
 
 -- Add GP to a player by their name
 function GoodEPGP:AddGPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
-    GoodEPGP:Debug("Adding " .. amount .. " GP to " .. name .. ".")
+    message = "Adding " .. amount .. " GP to " .. name .. "."
+    GoodEPGP:Debug(message)
+    SendChatMessage(message, "OFFICER")
     GoodEPGP:SetEPGPByName(name, nil, nil, nil, amount)
 end
 
@@ -500,7 +546,13 @@ function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
             if (player == select(1, strsplit("-", name))) then
                 ep = select(1, strsplit(",", officerNote))
                 gp = select(2, strsplit(",", officerNote))
-            
+                if (ep == nil or ep == "") then
+                    ep = 0
+                end
+                if (gp == nil or gp == "") then
+                    gp = GoodEPGP.config.minGP
+                end
+
                 if (addEp ~= nil) then
                     ep = tonumber(ep) + tonumber(addEp)
                 end
@@ -510,6 +562,10 @@ function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
             end
         end
     end 
+
+    -- Round our EP & GP
+    ep = GoodEPGP:Round(ep, 2)
+    gp = GoodEPGP:Round(gp, 2)
     
     -- Set the EPGP record
     for i = 1, GetNumGuildMembers() do
@@ -636,6 +692,29 @@ function GoodEPGP:Decay()
 
     local decayPercent = GoodEPGP:Round(GoodEPGP.config.decayPercent * 100, 0) .. '%.'
     GoodEPGP:Debug("EP & GP have been decayed by " .. decayPercent)
+end
+
+-- Round all player's EP & GP to 2 decimal places
+function GoodEPGP:RoundPoints()
+    -- Loop through guild roster, decay all members
+    for i = 1, GetNumGuildMembers() do
+        local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
+        if (string.find(officerNote, ",") == nil) then
+            officerNote = '0,100'
+        end
+        
+        local ep = select(1, strsplit(",", officerNote))
+        local gp = select(2, strsplit(",", officerNote))
+        ep = tonumber(ep)
+        gp = tonumber(gp)
+        local ep = GoodEPGP:Round(ep, 2)
+        local gp = GoodEPGP:Round(gp, 2)
+
+        if (ep > 0) then
+            playerName = select(1, strsplit("-", guildName))
+            GoodEPGP:SetEPGPByName(playerName, ep, gp)
+        end
+    end
 end
 
 -- Get a player's current EP/GP standing. Name = player to lookup, type = (whisper|console), playerName = player to whisper back with information
@@ -987,11 +1066,12 @@ function GoodEPGP:ImportStandings()
     -- Loop through import data
     for key, value in pairs(GoodEPGPStandingsImport) do
         if (tonumber(value.ep) > 0) then
+            GoodEPGP:Debug(value.player)
             GoodEPGP:SetEPGPByName(value.player, value.ep, value.gp)
         end
     end
 
-    GoodEPGPStandingsImport = {}
+    -- GoodEPGPStandingsImport = {}
 end
 
 -- =====================
