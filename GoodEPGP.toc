@@ -1,7 +1,7 @@
 ## Interface: 11303
 ## Title: Good EPGP
 ## Author: Taunt <Good>
-## Version: 0.10
+## Version: 1.1
 ## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
