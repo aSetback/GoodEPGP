@@ -80,12 +80,12 @@ function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
     end
 
     -- Save this loot to the stored table
-    if (playerName ~= nil) {
+    if (playerName ~= nil) then
         table.insert(GoodEPGPLoot, lootString)
 
         local msg = "[GoodEPGP]: " .. playerName .. " has looted " .. itemLink .. "."
         SendChatMessage(msg, "GUILD")
-    }
+    end
 end
 
 -- Re-compile our internal EPGP table
