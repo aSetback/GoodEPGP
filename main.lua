@@ -42,7 +42,7 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("LOOT_CLOSED")
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
-    -- self:RegisterEvent("CHAT_MSG_LOOT")
+    self:RegisterEvent("CHAT_MSG_LOOT")
     
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
@@ -60,23 +60,32 @@ function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
         return
     end
     
-    -- Parse out item name
-    local itemName = string.match(text, "%[(.-)%]")
-    if (itemName == nil) then
-        return
-    end
-    self:Print(itemName)
+    local itemLink = string.match(text, "|%x+|Hitem:.-|h.-|h|r")
+    local itemId = select(2, strsplit(":", itemLink))
 
     -- Parse out link & rarity
-    local _, itemLink, itemRarity = GetItemInfo(itemName)
-    self:Print(itemLink)
-    self:Print(itemRarity)
-    if (itemRarity == nil) then
+    local itemName, _, itemRarity = GetItemInfo(itemId)
+
+    local currentTime = date("%m/%d/%y %H:%M:%S")
+    -- Generate string
+    local lootString = currentTime .. "|" .. playerName .. "|" .. itemName .. "|" .. itemRarity
+    
+    if (itemRarity == nil or itemRarity < 4) then
         return
     end
 
-    -- Output playername, itemLink, rarity
-    self:Print(playerName .. " > " .. itemLink .. " " .. itemRarity)
+    -- Save loot to the table
+    if (GoodEPGPLoot == nil) then
+        GoodEPGPLoot = {}
+    end
+
+    -- Save this loot to the stored table
+    if (playerName ~= nil) {
+        table.insert(GoodEPGPLoot, lootString)
+
+        local msg = "[GoodEPGP]: " .. playerName .. " has looted " .. itemLink .. "."
+        SendChatMessage(msg, "GUILD")
+    }
 end
 
 -- Re-compile our internal EPGP table
@@ -524,7 +533,7 @@ function GoodEPGP:AddEPByName(name, amount)
         amount = 0
     end
     GoodEPGP:Debug(message)
-    SendChatMessage(message, "OFFICER")
+    SendChatMessage(message, "GUILD")
     GoodEPGP:SetEPGPByName(name, nil, nil, amount, nil)
 end
 
@@ -533,7 +542,7 @@ function GoodEPGP:AddGPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
     message = "Adding " .. amount .. " GP to " .. name .. "."
     GoodEPGP:Debug(message)
-    SendChatMessage(message, "OFFICER")
+    SendChatMessage(message, "GUILD")
     GoodEPGP:SetEPGPByName(name, nil, nil, nil, amount)
 end
 
