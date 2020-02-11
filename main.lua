@@ -19,6 +19,7 @@ function GoodEPGP:OnEnable()
             ["debugEnabled"] = false,
             ["decayPercent"] = 0.1,
             ["minGP"] = 100,
+            ["displayLoot"] = false
         }
     end
 
@@ -30,6 +31,7 @@ function GoodEPGP:OnEnable()
         {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
         {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
         {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
+        {["key"] = "displayLoot", ["type"] = "CheckBox", ["label"] = "Display loot in guild chat", ["default"] = "false"},
         {["type"] = "Heading", ["text"] = "Debug"},
         {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
     }
@@ -82,9 +84,10 @@ function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
     -- Save this loot to the stored table
     if (playerName ~= nil) then
         table.insert(GoodEPGPLoot, lootString)
-
-        local msg = "[GoodEPGP]: " .. playerName .. " has looted " .. itemLink .. "."
-        SendChatMessage(msg, "GUILD")
+        if (GoodEPGP.config.displayLoot) then
+            local msg = "[GoodEPGP]: " .. playerName .. " has looted " .. itemLink .. "."
+            SendChatMessage(msg, "GUILD")
+        end
     end
 end
 
@@ -471,8 +474,8 @@ function GoodEPGP:ExportGuildRoster()
         end
 
         -- Make sure we're above the min GP.
-        if (gp == nil or gp < GoodEPGP.config.minGP) then
-            gp = GoodEPGP.config.minGP
+        if (gp == nil or gp < tonumber(GoodEPGP.config.minGP)) then
+            gp = tonumber(GoodEPGP.config.minGP)
         end
 
         -- Calculate our PR
@@ -691,8 +694,8 @@ function GoodEPGP:Decay()
         if (ep > 0) then
             ep = ep * (1 - tonumber(GoodEPGP.config.decayPercent))
             gp = gp * (1 - tonumber(GoodEPGP.config.decayPercent))
-            if (gp < GoodEPGP.config.minGP) then
-                gp = GoodEPGP.config.minGP
+            if (gp < tonumber(GoodEPGP.config.minGP)) then
+                gp = tonumber(GoodEPGP.config.minGP)
             end
             playerName = select(1, strsplit("-", guildName))
             GoodEPGP:SetEPGPByName(playerName, ep, gp)
