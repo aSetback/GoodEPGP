@@ -12,6 +12,10 @@ end
 
 -- Alert the player the add-on has started, and register our events.
 function GoodEPGP:OnEnable()
+
+    -- Enable add-on messages
+    C_ChatInfo.RegisterAddonMessagePrefix("GoodEPGP")
+
     -- Default settings
     if (GoodEPGPConfig == nil) then
         GoodEPGPConfig = {
@@ -45,16 +49,26 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_LOOT")
-    
+    self:RegisterEvent("CHAT_MSG_ADDON")
+
+    -- Add bag click hooks
+    GoodEPGP:BagClickHooks()
+
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
 
-    GoodEPGP:ImportStandings()
 end
 
 -- =====================
 -- EVENT HANDLERS
 -- =====================
+
+-- Handle chat messages from other copies of the add-on
+function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
+    if (prefix == "GoodEPGP") then
+        GoodEPGP:Debug(text)
+    end
+end
 
 -- Record and report loot message.
 function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
@@ -94,6 +108,20 @@ end
 -- Re-compile our internal EPGP table
 function GoodEPGP:GUILD_ROSTER_UPDATE()
     GoodEPGP:ExportGuildRoster()
+end
+
+function GoodEPGP:BagClickHooks()
+    for bag = 1, 5 do
+        for slot = 1, 16 do
+            local buttonName = "ContainerFrame" .. bag .. "Item" .. slot
+            if (_G[buttonName] ~= nil) then
+                _G[buttonName]:HookScript("OnClick", function(button, data)                
+                    local bagSlots = GetContainerNumSlots(bag - 1);
+                    GoodEPGP:BagLootClick(bag - 1, (bagSlots - slot + 1), data);
+                end)    
+            end
+        end
+    end
 end
 
 -- Add click event listeners for all items within a loot box
@@ -220,6 +248,16 @@ function GoodEPGP:PrivateCommands(commandMessage)
     if (command == "charge") then
         GoodEPGP:ChargeForItem(arg1, arg2, arg3)
     end
+
+    -- Import EPGP standings from SavedVariables
+    if (command == "import") then
+        GoodEPGP:ImportStandings()
+    end
+
+    -- Test command for chat messages
+    if (command == "chat") then
+        GoodEPGP:ChatTest()
+    end
 end
 
 -- Handle public command parsing / routing
@@ -282,6 +320,27 @@ function GoodEPGP:HandleLoot(msg)
     self:Print(msg)
 end
 
+function GoodEPGP:BagLootClick(bag, slot, data)
+    if (GetContainerItemInfo(bag, slot)) then
+        local itemID = select(10, GetContainerItemInfo(bag, slot))
+        local itemName = select(1, GetItemInfo(itemID))
+        local itemLink = select(2, GetItemInfo(itemID))
+        local itemQuality = select(3, GetItemInfo(itemID))
+
+        GoodEPGP.activeItemIndex = 'bag'
+        GoodEPGP.activeItem = itemLink
+
+        -- If the alt key is being run down, run a EPGP  bid
+        if (IsAltKeyDown()) then 
+            -- Alt + Left Click
+            if (data == "LeftButton") then
+                GoodEPGP:StartBid(itemID)
+                return
+            end
+        end
+    end
+end
+
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
     -- If it's just currency, or the slot is empty, just return.
@@ -336,7 +395,7 @@ function GoodEPGP:StartBid(itemID)
     GoodEPGP.activeBid = true
     GoodEPGP.bids = {}
 
-    GoodEPGP:WidestAudience("Whisper me + for main spec, - for off spec to bid on " .. GoodEPGP.activeItem .. ". (MS Cost: " .. price .. " GP)")
+    GoodEPGP:WidestAudience("Whisper me + for main spec, - for off spec to bid on " .. GoodEPGP.activeItem .. ". (MS Cost: " .. price .. " GP, OS Cost: " .. offspecPrice .. " GP)")
     GoodEPGP:UpdateBidFrame()
 end
 
@@ -671,7 +730,7 @@ function GoodEPGP:Reset()
     for i = 1, GetNumGuildMembers() do
         local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
         local ep = 0
-        local gp = 100
+        local gp = GoodEPGP.config.minGP
         playerName = select(1, strsplit("-", guildName))
         GoodEPGP:SetEPGPByName(playerName, ep, gp)
     end
@@ -683,7 +742,7 @@ function GoodEPGP:Decay()
     for i = 1, GetNumGuildMembers() do
         local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
         if (string.find(officerNote, ",") == nil) then
-            officerNote = '0,100'
+            officerNote = '0,' .. GoodEPGP.config.minGP
         end
         
         local ep = select(1, strsplit(",", officerNote))
@@ -712,7 +771,7 @@ function GoodEPGP:RoundPoints()
     for i = 1, GetNumGuildMembers() do
         local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
         if (string.find(officerNote, ",") == nil) then
-            officerNote = '0,100'
+            officerNote = '0,' .. GoodEPGP.config.minGP
         end
         
         local ep = select(1, strsplit(",", officerNote))
@@ -774,8 +833,6 @@ function GoodEPGP:ConfirmAwardItem(playerName, type)
         GoodEPGP:AwardItem(playerName, type)
     end,
     function() 
-
-
         GoodEPGP:UpdateBidFrame() 
     end)
 end
@@ -786,10 +843,15 @@ function GoodEPGP:AwardItem(playerName, priceType)
     playerName = GoodEPGP:UCFirst(playerName)
 
     -- Retrive player's candidate index by name
-    GoodEPGP:MasterLootByName(playerName)
+    if (GoodEPGP.activeItemIndex ~= 'bag') then
+        GoodEPGP:MasterLootByName(playerName)
+    end
    
-    --- Award main spec or offspec GP
-    GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem, priceType)
+    -- Award main spec or offspec GP
+    local chargedPrice = GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem, priceType)
+
+    -- Notify other players using add-on
+    GoodEPGP:BroadcastAward(playerName, GoodEPGP.activeItem, chargedPrice)
 end
 
 -- Charge a player for an item
@@ -807,6 +869,12 @@ function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
 
     GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
     GoodEPGP:AddGPByName(member, price)
+    return price
+end
+
+-- Broadcast item award to all players with the add-on
+function GoodEPGP:BroadcastAward(player, item, price)
+    GoodEPGP:AddonMessage("Award:" .. player .. ":" .. item .. ":" .. price)
 end
 
 -- Show standings by class, with a minimum priority (1 by default)
@@ -864,6 +932,7 @@ function GoodEPGP:GetStandingsByClass(class)
     return classStandings
 end
 
+-- Show our options menu
 function GoodEPGP:OpenOptions()
     local AceGUI = LibStub("AceGUI-3.0")
     GoodEPGP.optionFrame = AceGUI:Create("Frame")
@@ -1094,6 +1163,11 @@ end
 function GoodEPGP:UCFirst(word)
     word = word:sub(1,1):upper() .. word:sub(2):lower()
     return word
+end
+
+-- Send an add-on message
+function GoodEPGP:AddonMessage(msg)
+    C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "GUILD");
 end
 
 -- Send a branded whisper to player.  message = message to send, playerName = player to whisper
