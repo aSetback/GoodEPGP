@@ -715,7 +715,7 @@ function GoodEPGP:GetGuildMemberByName(name)
                 local gp = select(2, strsplit(",", officerNote))
                 if (ep == nil or gp == nil) then
                     ep = 0
-                    gp = 100
+                    gp = GoodEPGP.config.minGP
                 end
                 local pr = GoodEPGP:Round(tonumber(ep) / tonumber(gp), 2)
                 playerInfo = {
@@ -961,11 +961,11 @@ function GoodEPGP:AddStandingLine(player)
     prioLabel:SetText(player.pr)
     prioLabel:SetWidth(100)
 
-    GoodEPGP.standingsFrame:AddChild(playerLabel)
-    GoodEPGP.standingsFrame:AddChild(classLabel)
-    GoodEPGP.standingsFrame:AddChild(epLabel)
-    GoodEPGP.standingsFrame:AddChild(gpLabel)
-    GoodEPGP.standingsFrame:AddChild(prioLabel)
+    GoodEPGP.bidFrame:AddChild(playerLabel)
+    GoodEPGP.bidFrame:AddChild(classLabel)
+    GoodEPGP.bidFrame:AddChild(epLabel)
+    GoodEPGP.bidFrame:AddChild(gpLabel)
+    GoodEPGP.bidFrame:AddChild(prioLabel)
 end
 
 -- Broadcast standings
