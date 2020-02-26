@@ -2,7 +2,7 @@
 ## Title: Good EPGP
 ## Author: Taunt <Good>
 ## Version: 1.1
-## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot
+## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot, GoodEPGPCachedStandings
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 
