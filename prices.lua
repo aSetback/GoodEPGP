@@ -365,3 +365,85 @@ local prices = {
 }
 GoodEPGP.prices = prices
 
+-- Show EPGP standings
+function GoodEPGP:ShowPrices()
+  local AceGUI = LibStub("AceGUI-3.0")
+  if (GoodEPGP.pricesFrame == nil) then
+      GoodEPGP.pricesFrame = AceGUI:Create("Frame")
+      GoodEPGP.pricesFrame:SetTitle("GoodEPGP")
+      GoodEPGP.pricesFrame:SetStatusText("EPGP Price List")
+      GoodEPGP.pricesFrame:SetLayout("Flow")
+      GoodEPGP.pricesFrame:EnableResize(false)
+      GoodEPGP.pricesFrame:SetCallback("OnClose", function(widget) 
+          widget:ReleaseChildren()
+          AceGUI:Release(widget) 
+          GoodEPGP.pricesFrame = nil
+      end)
+
+      GoodEPGP.pricesScrollContainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+      GoodEPGP.pricesScrollContainer:SetFullWidth(true)
+      GoodEPGP.pricesScrollContainer:SetFullHeight(true) -- probably?
+      GoodEPGP.pricesScrollContainer:SetLayout("Fill") -- important!
+      
+      GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesScrollContainer)
+      
+      GoodEPGP.pricesScrollFrame = AceGUI:Create("ScrollFrame")
+      GoodEPGP.pricesScrollFrame:SetLayout("Flow") -- probably?
+      GoodEPGP.pricesScrollContainer:AddChild(GoodEPGP.pricesScrollFrame)
+  end
+
+  GoodEPGP.pricesScrollFrame:ReleaseChildren()
+
+  local headers = {
+      {["label"] = "Item", ["width"] = 300, ["sortColumn"] = "name"},
+      {["label"] = "MS", ["width"] = 100, ["sortColumn"] = "ms"},
+      {["label"] = "OS", ["width"] = 100, ["sortColumn"] = "os"},
+  }
+
+  GoodEPGP:AddHeaderLine(headers, GoodEPGP.pricesScrollFrame, "PricesSort")
+
+  for key, item in pairs(GoodEPGP.prices) do
+      GoodEPGP:AddPriceLine(key, item[1], GoodEPGP.pricesScrollFrame)
+  end
+end
+
+function GoodEPGP:AddPriceLine(itemID, price, frame)
+-- Display a single line of standings
+  local AceGUI = LibStub("AceGUI-3.0")
+
+  local item = Item:CreateFromItemID(itemID)
+  item:ContinueOnItemLoad(function() 
+    local itemLink = select(2, GetItemInfo(itemID))
+    local label = AceGUI:Create("Label")
+    label:SetText(itemLink)
+    label:SetWidth(300)
+    frame:AddChild(label)
+
+    local mslabel = AceGUI:Create("Label")
+    mslabel:SetText(price)
+    mslabel:SetWidth(100)
+    frame:AddChild(mslabel)
+
+    local oslabel = AceGUI:Create("Label")
+    local osprice = tonumber(price) / 4
+    oslabel:SetText(osprice)
+    oslabel:SetWidth(100)
+    frame:AddChild(oslabel)
+  end)
+end
+
+
+-- Sort the EPGP prices table
+function GoodEPGP:PricesSort(sortColumn)
+  GoodEPGP:Debug(sortColumn)
+
+  -- Custom sort function
+  table.sort(GoodEPGP.prices, function(a, b)
+    if (sortColumn == "name") then
+      GoodEPGP:Debug(a[1])
+      return a[2] > b[2]
+    end
+  end)
+
+  GoodEPGP:ShowPrices()
+end

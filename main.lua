@@ -244,6 +244,10 @@ function GoodEPGP:PrivateCommands(commandMessage)
         GoodEPGP:RequestStandings()
     end
 
+    if (command == "prices") then
+        GoodEPGP:ShowPrices();
+    end
+
 end
 
 -- Handle public command parsing / routing
@@ -401,7 +405,7 @@ function GoodEPGP:GetPrice(itemID)
     return price
 end
 
--- Retrive the price of an item, and send it back via whisper/console
+-- Retrieve the price of an item, and send it back via whisper/console
 function GoodEPGP:ShowPrice(item, type, playerName)
     -- Attempt to pull up item data via link
     local itemID = GoodEPGP:GetItemID(item)

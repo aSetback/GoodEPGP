@@ -80,7 +80,7 @@ function GoodEPGP:ShowStandings()
         {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
     }
 
-    GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame)
+    GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
 
     for key, player in pairs(GoodEPGPCachedStandings) do
         GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame)
@@ -88,7 +88,7 @@ function GoodEPGP:ShowStandings()
 end
 
 -- Display header line
-function GoodEPGP:AddHeaderLine(headers, frame)
+function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
     local AceGUI = LibStub("AceGUI-3.0")
 
     for key, values in pairs(headers) do
@@ -97,14 +97,15 @@ function GoodEPGP:AddHeaderLine(headers, frame)
         headerLabel:SetWidth(values.width)
         headerLabel:SetColor(1, 1, 200)
         headerLabel:SetCallback("OnClick", function() 
-            GoodEPGP:StandingsSort(values.sortColumn)
+            GoodEPGP[sortFunction](GoodEPGP, values.sortColumn)
         end)
         frame:AddChild(headerLabel)
     end
 end
 
--- Sort the EPGP standings tablez
+-- Sort the EPGP standings tables
 function GoodEPGP:StandingsSort(sortColumn)
+
     -- Sort based on previous sort (ASC => DESC => ASC)
     local sortOrder = "ASC"
     if (GoodEPGP.standingsFrame ~= nil) then
