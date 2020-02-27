@@ -66,12 +66,30 @@ end
 -- Handle chat messages from other copies of the add-on
 function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
     if (prefix == "GoodEPGP") then
-        if (text == "clearStandings") then
-            GoodEPGPCachedStandings = {}
-        end
+        local player = select(1, strsplit("-", sender))
+
         if (text == "requestStandings") then
-            GoodEPGP:BroadcastStandings()
+            GoodEPGP:StandingsAvailability(player)
         end
+
+        if (text == "standingsAvailable") then
+            if (GoodEPGP.requestStandings) then
+                GoodEPGP.requestStandings = false
+                GoodEPGP:Debug("Requesting standings from " .. player)
+                GoodEPGPCachedStandings = {}
+                GoodEPGP:AddonMessage("getStandings", player)
+            end
+        end
+
+        if (text == "getStandings") then 
+            GoodEPGP:SendStandings(player)
+        end
+
+        if (text == "standingsBroadcastComplete") then
+            GoodEPGP:StandingsSort("name")
+            GoodEPGP:ShowStandings()
+        end
+
         if (string.sub(text, 1, 2) == "S:") then
             GoodEPGP:ReceiveStandings(text)
         end
@@ -120,11 +138,11 @@ end
 
 function GoodEPGP:BagClickHooks()
     for bag = 1, 5 do
-        for slot = 1, 16 do
+        local bagSlots = GetContainerNumSlots(bag - 1);
+        for slot = 1, bagSlots do
             local buttonName = "ContainerFrame" .. bag .. "Item" .. slot
             if (_G[buttonName] ~= nil) then
                 _G[buttonName]:HookScript("OnClick", function(button, data)                
-                    local bagSlots = GetContainerNumSlots(bag - 1);
                     GoodEPGP:BagLootClick(bag - 1, (bagSlots - slot + 1), data);
                 end)    
             end
@@ -226,10 +244,6 @@ function GoodEPGP:PrivateCommands(commandMessage)
         GoodEPGP:OpenOptions()
     end
 
-    if (command == "import") then
-        GoodEPGP:ImportRecords()
-    end
-
     -- Add GP to a player
     if (command == "gp") then
         if (arg1 ~= "" and arg2 ~= "") then
@@ -262,10 +276,11 @@ function GoodEPGP:PrivateCommands(commandMessage)
         GoodEPGP:ImportStandings()
     end
 
-    -- Test command for chat messages
-    if (command == "bc") then
+    -- Show EPGP standings
+    if (command == "show") then
         GoodEPGP:RequestStandings()
     end
+
 end
 
 -- Handle public command parsing / routing
@@ -323,10 +338,6 @@ end
 -- =====================
 -- PRIVATE FUNCTIONS
 -- =====================
-
-function GoodEPGP:HandleLoot(msg)
-    self:Print(msg)
-end
 
 function GoodEPGP:BagLootClick(bag, slot, data)
     if (GetContainerItemInfo(bag, slot)) then
@@ -880,179 +891,6 @@ function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
     return price
 end
 
--- Receive standings
-function GoodEPGP:ReceiveStandings(text)
-    -- Set up our cached standings table
-    if (GoodEPGPCachedStandings == nil) then
-        GoodEPGPCachedStandings = {}
-    end
-
-    -- Parse the broadcast
-    local broadcast = { strsplit(";", string.sub(text, 3)) }
-    for key, standing in pairs(broadcast) do
-        if (standing ~= "") then
-            local player = select(1, strsplit(",", standing))
-            local class = select(2, strsplit(",", standing))
-            local spec = select(3, strsplit(",", standing))
-            local ep = select(4, strsplit(",", standing))
-            local gp = select(5, strsplit(",", standing))
-            local pr = GoodEPGP:Round(ep/gp, 2)
-            local playerInfo = {
-                ["name"] = player,
-                ["class"] = class,
-                ["spec"] = spec,
-                ["ep"] = ep,
-                ["gp"] = gp,
-                ["pr"] = pr
-            };
-            table.insert(GoodEPGPCachedStandings, playerInfo)
-        end
-    end
-    
-    GoodEPGP:ShowStandings()
-end
-
--- Request standings
-function GoodEPGP:RequestStandings() 
-    GoodEPGP:AddonMessage("requestStandings")
-end
-
--- Show EPGP standings
-function GoodEPGP:ShowStandings()
-    local AceGUI = LibStub("AceGUI-3.0")
-    if (GoodEPGP.standingsFrame ~= nil) then
-        AceGUI:Release(GoodEPGP.standingsFrame)
-    end
-    
-    GoodEPGP.standingsFrame = AceGUI:Create("Frame")
-    GoodEPGP.standingsFrame:SetTitle("GoodEPGP")
-    GoodEPGP.standingsFrame:SetStatusText("EPGP Standings")
-    GoodEPGP.standingsFrame:SetLayout("Flow")
-    for key, player in pairs(GoodEPGPCachedStandings) do
-        GoodEPGP:AddStandingLine(player)
-    end
-end
-
--- Display a single line of standings
-function GoodEPGP:AddStandingLine(player)
-    local AceGUI = LibStub("AceGUI-3.0")
-
-    local spacerLabel = AceGUI:Create("Label")
-    spacerLabel:SetText(" ")
-    spacerLabel:SetWidth(50)
-
-    local playerLabel = AceGUI:Create("Label")
-    playerLabel:SetText(player.name)
-    playerLabel:SetWidth(200)
-
-    local classLabel = AceGUI:Create("Label")
-    classLabel:SetText(player.spec .. " " .. player.class)
-    classLabel:SetWidth(150)
-
-    local epLabel = AceGUI:Create("Label")
-    epLabel:SetText(player.ep)
-    epLabel:SetWidth(50)
-
-    local gpLabel = AceGUI:Create("Label")
-    gpLabel:SetText(player.gp)
-    gpLabel:SetWidth(50)
-
-    local prioLabel = AceGUI:Create("Label")
-    prioLabel:SetText(player.pr)
-    prioLabel:SetWidth(100)
-
-    GoodEPGP.bidFrame:AddChild(playerLabel)
-    GoodEPGP.bidFrame:AddChild(classLabel)
-    GoodEPGP.bidFrame:AddChild(epLabel)
-    GoodEPGP.bidFrame:AddChild(gpLabel)
-    GoodEPGP.bidFrame:AddChild(prioLabel)
-end
-
--- Broadcast standings
-function GoodEPGP:BroadcastStandings()
-    GoodEPGP:Debug("Broadcasting standings")
-    GoodEPGP:AddonMessage("clearStandings")
-    local standings = {}
-    for i = 1, GetNumGuildMembers() do
-        local name = GetGuildRosterInfo(i)
-        name = select(1, strsplit("-", name))
-        local member = GoodEPGP:GetGuildMemberByName(name)
-        table.insert(standings, member)
-    end
-    
-    local broadcast = ""
-    for key, player in pairs(standings) do
-        broadcast = broadcast .. player.name .. "," .. player.class .. "," .. player.spec .. "," .. player.ep .. "," .. player.gp .. ";"
-        if (string.len(broadcast) > 200) then
-            GoodEPGP:AddonMessage("S:" .. broadcast)
-            broadcast = ""
-        end
-    end
-    if (broadcast ~= "") then
-        GoodEPGP:AddonMessage("S:" .. broadcast)
-    end
-end
-
--- Broadcast item award to all players with the add-on
-function GoodEPGP:BroadcastAward(player, item, price)
-    GoodEPGP:AddonMessage("Award:" .. player .. ":" .. item .. ":" .. price)
-end
-
--- Show standings by class, with a minimum priority (1 by default)
-function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
-    -- Retrieve our standings by class(es)
-    local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
-    if (classStandings == nil or #classStandings == 0) then
-        return
-    end
-    
-    -- Check if minimum is set and numeric
-    minimumPrio = tonumber(minimumPrio)
-    if (minimumPrio == nil) then
-        minimumPrio = .1
-    end
-    
-    -- Loop through our classStandings table and show every line above minimum prio
-    for key, memberInfo in pairs(classStandings) do
-        if (tonumber(memberInfo.pr) >= tonumber(minimumPrio)) then
-            GoodEPGP:ShowPlayerInfo(memberInfo, type, playerName)
-        end
-    end
-end
-
--- Get EPGP standings by class/classes
-function GoodEPGP:GetStandingsByClass(class)
-    local classes = nil
-    if (string.find(class, ",") ~= nil) then
-        classes = GoodEPGP:SplitString(class, ",")
-    end
-
-    local classStandings = {}
-    for i = 1, GetNumGuildMembers() do
-        local name = GetGuildRosterInfo(i)
-        name = select(1, strsplit("-", name))
-        local member = GoodEPGP:GetGuildMemberByName(name)
-        if (member == nil) then
-            return classStandings
-        end
-        if (classes ~= nil) then 
-            for classKey, className in pairs(classes) do
-                if (member.class == GoodEPGP:UCFirst(className)) then
-                    table.insert(classStandings, member)
-                end
-            end
-        else
-            if (member.class == GoodEPGP:UCFirst(class)) then
-                table.insert(classStandings, member)
-            end
-        end
-    end
-    table.sort(classStandings, function(a, b)
-        return a.pr > b.pr
-    end)
-    return classStandings
-end
-
 -- Show our options menu
 function GoodEPGP:OpenOptions()
     local AceGUI = LibStub("AceGUI-3.0")
@@ -1096,7 +934,6 @@ function GoodEPGP:OpenOptions()
 
         GoodEPGP.optionFrame:AddChild(configWidget)
     end
-
 end
 
 function GoodEPGP:CreateBidFrame()
@@ -1287,8 +1124,12 @@ function GoodEPGP:UCFirst(word)
 end
 
 -- Send an add-on message
-function GoodEPGP:AddonMessage(msg)
-    C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "GUILD");
+function GoodEPGP:AddonMessage(msg, target)
+    if (target ~= nil) then
+        C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "WHISPER", target);
+    else
+        C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "GUILD");
+    end
 end
 
 -- Send a branded whisper to player.  message = message to send, playerName = player to whisper

@@ -9,5 +9,6 @@
 embeds.xml
 
 main.lua
+standings.lua
 prices.lua
 specs.lua
