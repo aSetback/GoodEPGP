@@ -52,6 +52,11 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsFrame:SetStatusText("EPGP Standings")
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
+        GoodEPGP.standingsFrame:SetCallback("OnClose", function(widget) 
+            widget:ReleaseChildren()
+            AceGUI:Release(widget) 
+            GoodEPGP.standingsFrame = nil
+        end)
 
         GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
         GoodEPGP.standingsScrollContainer:SetFullWidth(true)
@@ -64,6 +69,7 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsScrollFrame:SetLayout("Flow") -- probably?
         GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
     end
+
     GoodEPGP.standingsScrollFrame:ReleaseChildren()
 
     local headers = {

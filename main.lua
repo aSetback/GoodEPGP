@@ -87,7 +87,6 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
 
         if (text == "standingsBroadcastComplete") then
             GoodEPGP:StandingsSort("name")
-            GoodEPGP:ShowStandings()
         end
 
         if (string.sub(text, 1, 2) == "S:") then
