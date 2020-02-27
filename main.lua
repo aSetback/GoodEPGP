@@ -48,7 +48,6 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("LOOT_CLOSED")
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
-    self:RegisterEvent("CHAT_MSG_LOOT")
     self:RegisterEvent("CHAT_MSG_ADDON")
 
     -- Add bag click hooks
@@ -91,41 +90,6 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
 
         if (string.sub(text, 1, 2) == "S:") then
             GoodEPGP:ReceiveStandings(text)
-        end
-    end
-end
-
--- Record and report loot message.
-function GoodEPGP:CHAT_MSG_LOOT(event, text, arg1, arg2, arg3, playerName)
-    if (text == nil or playerName == nil) then
-        return
-    end
-    
-    local itemLink = string.match(text, "|%x+|Hitem:.-|h.-|h|r")
-    local itemId = select(2, strsplit(":", itemLink))
-
-    -- Parse out link & rarity
-    local itemName, _, itemRarity = GetItemInfo(itemId)
-
-    local currentTime = date("%m/%d/%y %H:%M:%S")
-    -- Generate string
-    local lootString = currentTime .. "|" .. playerName .. "|" .. itemName .. "|" .. itemRarity
-    
-    if (itemRarity == nil or itemRarity < 4) then
-        return
-    end
-
-    -- Save loot to the table
-    if (GoodEPGPLoot == nil) then
-        GoodEPGPLoot = {}
-    end
-
-    -- Save this loot to the stored table
-    if (playerName ~= nil) then
-        table.insert(GoodEPGPLoot, lootString)
-        if (GoodEPGP.config.displayLoot) then
-            local msg = "[GoodEPGP]: " .. playerName .. " has looted " .. itemLink .. "."
-            SendChatMessage(msg, "GUILD")
         end
     end
 end
