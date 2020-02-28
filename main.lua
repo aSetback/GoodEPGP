@@ -10,9 +10,7 @@ function SlashCmdList.GEP(msg, editbox)
     GoodEPGP:PublicCommands(msg)
 end
 
--- Alert the player the add-on has started, and register our events.
-function GoodEPGP:OnEnable()
-
+function GoodEPGP:OnInitialize()
     -- Enable add-on messages
     C_ChatInfo.RegisterAddonMessagePrefix("GoodEPGP")
 
@@ -30,6 +28,24 @@ function GoodEPGP:OnEnable()
     -- Use our settings
     GoodEPGP.config = GoodEPGPConfig
 
+    -- Events
+    self:RegisterEvent("LOOT_OPENED")
+    self:RegisterEvent("LOOT_CLOSED")
+    self:RegisterEvent("CHAT_MSG_WHISPER")
+    self:RegisterEvent("GUILD_ROSTER_UPDATE")
+    self:RegisterEvent("CHAT_MSG_ADDON")
+
+    -- Inform the user!
+    GoodEPGP:Debug('Initialized')
+
+    -- Retrieve the most recent standings if possible
+    GoodEPGP.showAfterRequest = false       
+    GoodEPGP:RequestStandings()
+end
+
+-- Alert the player the add-on has started, and register our events.
+function GoodEPGP:OnEnable()
+
     -- Our options menu
     GoodEPGP.configOptions = {
         {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
@@ -43,19 +59,11 @@ function GoodEPGP:OnEnable()
     -- Notify that debug is enabled
     GoodEPGP:Debug('Debug is enabled.')
 
-    -- Events
-    self:RegisterEvent("LOOT_OPENED")
-    self:RegisterEvent("LOOT_CLOSED")
-    self:RegisterEvent("CHAT_MSG_WHISPER")
-    self:RegisterEvent("GUILD_ROSTER_UPDATE")
-    self:RegisterEvent("CHAT_MSG_ADDON")
-
     -- Add bag click hooks
     GoodEPGP:BagClickHooks()
 
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
-
 end
 
 -- =====================
@@ -241,6 +249,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
 
     -- Show EPGP standings
     if (command == "show") then
+        GoodEPGP.standingsFrame:Show()
         GoodEPGP:RequestStandings()
     end
 

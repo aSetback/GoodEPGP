@@ -78,11 +78,10 @@ function GoodEPGP:ShowStandings()
     
         -- Add our header line, and specify the sorting function to us
         GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
-    else
-        -- Our frame already exists -- show it
-        GoodEPGP.standingsFrame:Show()
-    end
 
+        GoodEPGP.standingsFrame:Hide()
+    end
+    
     -- Go through our standings and display them
     for key, player in pairs(GoodEPGPCachedStandings) do
         GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
@@ -247,7 +246,7 @@ function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
     if (class == nil) then
         return nil
     end    
-    
+
     -- Retrieve our standings by class(es)
     local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
     if (classStandings == nil or #classStandings == 0) then
