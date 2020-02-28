@@ -28,19 +28,13 @@ function GoodEPGP:OnInitialize()
     -- Use our settings
     GoodEPGP.config = GoodEPGPConfig
 
-    -- Events
-    self:RegisterEvent("LOOT_OPENED")
-    self:RegisterEvent("LOOT_CLOSED")
-    self:RegisterEvent("CHAT_MSG_WHISPER")
-    self:RegisterEvent("GUILD_ROSTER_UPDATE")
-    self:RegisterEvent("CHAT_MSG_ADDON")
-
-    -- Inform the user!
-    GoodEPGP:Debug('Initialized')
+    -- Set up our cached standings table
+    if (GoodEPGPCachedStandings == nil) then
+        GoodEPGPCachedStandings = {}
+    end
 
     -- Retrieve the most recent standings if possible
-    GoodEPGP.showAfterRequest = false       
-    GoodEPGP:RequestStandings()
+    GoodEPGP:ShowStandings()
 end
 
 -- Alert the player the add-on has started, and register our events.
@@ -58,6 +52,14 @@ function GoodEPGP:OnEnable()
     
     -- Notify that debug is enabled
     GoodEPGP:Debug('Debug is enabled.')
+    
+    -- Events
+    self:RegisterEvent("LOOT_OPENED")
+    self:RegisterEvent("LOOT_CLOSED")
+    self:RegisterEvent("CHAT_MSG_WHISPER")
+    self:RegisterEvent("GUILD_ROSTER_UPDATE")
+    self:RegisterEvent("CHAT_MSG_ADDON")
+
 
     -- Add bag click hooks
     GoodEPGP:BagClickHooks()

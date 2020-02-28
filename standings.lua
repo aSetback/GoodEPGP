@@ -3,10 +3,6 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 -- Receive standings
 function GoodEPGP:ReceiveStandings(text)
-    -- Set up our cached standings table
-    if (GoodEPGPCachedStandings == nil) then
-        GoodEPGPCachedStandings = {}
-    end
 
     -- Parse the broadcast
     local broadcast = { strsplit(";", string.sub(text, 3)) }
