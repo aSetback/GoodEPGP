@@ -1,3 +1,5 @@
+-- Include the AceGUI for frame manipulation
+local AceGUI = LibStub("AceGUI-3.0")
 
 -- Receive standings
 function GoodEPGP:ReceiveStandings(text)
@@ -10,11 +12,7 @@ function GoodEPGP:ReceiveStandings(text)
     local broadcast = { strsplit(";", string.sub(text, 3)) }
     for key, standing in pairs(broadcast) do
         if (standing ~= "") then
-            local player = select(1, strsplit(",", standing))
-            local class = select(2, strsplit(",", standing))
-            local spec = select(3, strsplit(",", standing))
-            local ep = select(4, strsplit(",", standing))
-            local gp = select(5, strsplit(",", standing))
+            local player, class, spec, ep, gp, pr = strsplit(",", standing)
             local pr = GoodEPGP:Round(ep/gp, 2)
             local playerInfo = {
                 ["name"] = player,
@@ -38,6 +36,7 @@ end
 
 -- Let user know you have standings available
 function GoodEPGP:StandingsAvailability(player)
+    -- Verify you can actually SEE epgp before you offer to give people standings
     if (CanEditOfficerNote()) then
         GoodEPGP:AddonMessage("standingsAvailable", player)
     end
@@ -45,60 +44,65 @@ end
 
 -- Show EPGP standings
 function GoodEPGP:ShowStandings()
-    local AceGUI = LibStub("AceGUI-3.0")
+    -- Create the standingsFrame if it doesn't exist.
     if (GoodEPGP.standingsFrame == nil) then
+        -- Create the overall frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
         GoodEPGP.standingsFrame:SetTitle("GoodEPGP")
         GoodEPGP.standingsFrame:SetStatusText("EPGP Standings")
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
-        GoodEPGP.standingsFrame:SetCallback("OnClose", function(widget) 
-            widget:ReleaseChildren()
-            AceGUI:Release(widget) 
-            GoodEPGP.standingsFrame = nil
-        end)
 
-        GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+        -- Create a container for the scrolling content
+        GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup")
         GoodEPGP.standingsScrollContainer:SetFullWidth(true)
-        GoodEPGP.standingsScrollContainer:SetFullHeight(true) -- probably?
-        GoodEPGP.standingsScrollContainer:SetLayout("Fill") -- important!
+        GoodEPGP.standingsScrollContainer:SetFullHeight(true)
+        GoodEPGP.standingsScrollContainer:SetLayout("Fill")
         
+        -- Add scrolling container to parent
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsScrollContainer)
         
+        -- Add the actual frame for the scrolling standings to go to
         GoodEPGP.standingsScrollFrame = AceGUI:Create("ScrollFrame")
-        GoodEPGP.standingsScrollFrame:SetLayout("Flow") -- probably?
+        GoodEPGP.standingsScrollFrame:SetLayout("Flow")
         GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
+
+        -- Generate labels for each of our headers
+        local headers = {
+            {["label"] = "Player", ["width"] = 200, ["sortColumn"] = "name"},
+            {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
+            {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
+            {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
+            {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
+        }
+    
+        -- Add our header line, and specify the sorting function to us
+        GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
+    else
+        -- Our frame already exists -- show it
+        GoodEPGP.standingsFrame:Show()
     end
 
-    GoodEPGP.standingsScrollFrame:ReleaseChildren()
-
-    local headers = {
-        {["label"] = "Player", ["width"] = 200, ["sortColumn"] = "name"},
-        {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
-        {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
-        {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
-        {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
-    }
-
-    GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
-
+    -- Go through our standings and display them
     for key, player in pairs(GoodEPGPCachedStandings) do
-        GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame)
+        GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
     end
 end
 
 -- Display header line
 function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
-    local AceGUI = LibStub("AceGUI-3.0")
-
+    -- Loop through our table of headers and display them    
     for key, values in pairs(headers) do
         local headerLabel = AceGUI:Create("InteractiveLabel")
         headerLabel:SetText(values.label)
         headerLabel:SetWidth(values.width)
-        headerLabel:SetColor(1, 1, 200)
+
+        -- Add our sorting event on click
         headerLabel:SetCallback("OnClick", function() 
             GoodEPGP[sortFunction](GoodEPGP, values.sortColumn)
         end)
+
+        -- Attach the label to our parent frame
         frame:AddChild(headerLabel)
     end
 end
@@ -153,9 +157,14 @@ function GoodEPGP:StandingsSort(sortColumn)
 end
 
 -- Display a single line of standings
-function GoodEPGP:AddStandingLine(player, frame)
-    local AceGUI = LibStub("AceGUI-3.0")
+function GoodEPGP:AddStandingLine(player, frame, index)
 
+    -- Set up a table of standings frame lines
+    if (GoodEPGP.standingsFrames == nil) then
+        GoodEPGP.standingsFrames = {}
+    end
+
+    -- Our list of fields and related widths
     local fields = {
         {["field"] = "name", ["width"] = 200},
         {["field"] = "class", ["width"] = 150},
@@ -164,17 +173,39 @@ function GoodEPGP:AddStandingLine(player, frame)
         {["field"] = "pr", ["width"] = 80},
     }
 
-    for key, field in pairs(fields) do
-        local label = AceGUI:Create("Label")
-        label:SetText(player[field.field])
-        label:SetWidth(field.width)
-        frame:AddChild(label)
+    -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the standingsFrame table
+    if (GoodEPGP.standingsFrames[index]) then
+        local standingLine = GoodEPGP.standingsFrames[index]
+        -- Loop through each of the fields in our line and adjust the text of the frame.
+        for key, field in pairs(fields) do
+            local standingLabel = standingLine[field.field]
+            standingLabel:SetText(player[field.field])
+        end
+    else
+        local standingLine = {};
+
+        -- Our frames didn't already exist -- create them!
+        for key, field in pairs(fields) do
+            local label = AceGUI:Create("Label")
+            label:SetText(player[field.field])
+            label:SetWidth(field.width)
+            frame:AddChild(label)
+
+            -- Add the new label frame to the standingLine table for re-use later
+            standingLine[field.field] = label
+        end
+
+        -- Add our new standingLine table to the standingsFrames table for later use
+        GoodEPGP.standingsFrames[index] = standingLine
     end
 end
 
 -- Broadcast standings
 function GoodEPGP:SendStandings(requestor)
+    -- Debug info
     GoodEPGP:Debug("Broadcasting standings to " .. requestor)
+
+    -- Generate a table of what the standings currently are
     local standings = {}
     for i = 1, GetNumGuildMembers() do
         local name = GetGuildRosterInfo(i)
@@ -183,19 +214,25 @@ function GoodEPGP:SendStandings(requestor)
         table.insert(standings, member)
     end
     
+    -- Generate our broadcast string
     local broadcast = ""
     for key, player in pairs(standings) do
         if (tonumber(player.ep) > 0) then
             broadcast = broadcast .. player.name .. "," .. player.class .. "," .. player.spec .. "," .. player.ep .. "," .. player.gp .. ";"
+            -- Our string is approaching the 255 character limit.  Let's send it and start a new one.
             if (string.len(broadcast) > 200) then
                 GoodEPGP:AddonMessage("S:" .. broadcast, requestor)
                 broadcast = ""
             end
         end
     end
+
+    -- If there's a remainder message that didn't quite hit the 
     if (broadcast ~= "") then
         GoodEPGP:AddonMessage("S:" .. broadcast, requestor)
     end
+
+    -- Let the user know that we're doing sending standings
     GoodEPGP:AddonMessage("standingsBroadcastComplete", requestor)
 end
 
@@ -206,6 +243,11 @@ end
 
 -- Show standings by class, with a minimum priority (1 by default)
 function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
+    -- Make sure we have a class
+    if (class == nil) then
+        return nil
+    end    
+    
     -- Retrieve our standings by class(es)
     local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
     if (classStandings == nil or #classStandings == 0) then
@@ -228,6 +270,11 @@ end
 
 -- Get EPGP standings by class/classes
 function GoodEPGP:GetStandingsByClass(class)
+    -- Make sure we have a class
+    if (class == nil) then
+        return nil
+    end
+
     local classes = nil
     if (string.find(class, ",") ~= nil) then
         classes = GoodEPGP:SplitString(class, ",")
