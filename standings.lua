@@ -4,6 +4,55 @@ local AceGUI = LibStub("AceGUI-3.0")
 -- Class List
 local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
 
+-- Role List
+local roleList = {"All Roles", "Tank", "Healer", "Caster", "Melee"}
+
+-- Combo lists for role sorting
+local validCombos = {
+    ["Tank"] = {
+        {["class"] = "Warrior", ["spec"] = "Protection"},
+        {["class"] = "Druid", ["spec"] = "Feral"},
+    },
+    ["Healer"] = {
+        {["class"] = "Priest", ["spec"] = "Holy"},
+        {["class"] = "Priest", ["spec"] = "Discipline"},
+        {["class"] = "Druid", ["spec"] = "Restoration"},
+        {["class"] = "Paladin", ["spec"] = "Holy"},
+    },
+    ["Caster"] = {
+        {["class"] = "Priest", ["spec"] = "Shadow"},
+        {["class"] = "Mage", ["spec"] = "Frost"},
+        {["class"] = "Mage", ["spec"] = "Fire"},
+        {["class"] = "Mage", ["spec"] = "Arcane"},
+        {["class"] = "Warlock", ["spec"] = "Demonology"},
+        {["class"] = "Warlock", ["spec"] = "Affliction"},
+        {["class"] = "Warlock", ["spec"] = "Destruction"},
+        {["class"] = "Druid", ["spec"] = "Balance"},
+    },
+    ["Melee"] = {
+        {["class"] = "Druid", ["spec"] = "Feral"},
+        {["class"] = "Warrior", ["spec"] = "Arms"},
+        {["class"] = "Warrior", ["spec"] = "Fury"},
+        {["class"] = "Rogue", ["spec"] = "Combat"},
+        {["class"] = "Rogue", ["spec"] = "Subtlety"},
+        {["class"] = "Rogue", ["spec"] = "Assassination"},
+    }
+}
+
+-- Class colors in RGB
+local classColors = {
+    ["Druid"] = {["r"] = 1.00, ["g"] = .49, ["b"] = .04},
+    ["Hunter"] = {["r"] = .67, ["g"] = .83, ["b"] = .45},
+    ["Mage"] = {["r"] = .25, ["g"] = .78, ["b"] = .92},
+    ["Paladin"] = {["r"] = .96, ["g"] = .55, ["b"] = .73},
+    ["Priest"] = {["r"] = 1.00, ["g"] = 1.00, ["b"] = 1.00},
+    ["Rogue"] = {["r"] = 1.00, ["g"] = .96, ["b"] = .41},
+    ["Shaman"] = {["r"] = .00, ["g"] = .44, ["b"] = .87},
+    ["Warlock"] = {["r"] = .53, ["g"] = .53, ["b"] = .93},
+    ["Warrior"] = {["r"] = .78, ["g"] = .61, ["b"] = .43},
+}
+
+
 -- Date format
 local dateFormat = "%m/%d/%y @ %I:%M:%S %p"
 
@@ -73,15 +122,19 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsFrame.classSelectDropdown:SetList(classList)
         GoodEPGP.standingsFrame.classSelectDropdown:SetCallback("OnValueChanged", function(widget)
             local selectedClass = classList[widget:GetValue()];
-            GoodEPGP:FilterStandings("class", selectedClass)
+            GoodEPGP:StandingsFilter("class", selectedClass)
         end)
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.classSelectDropdown)
 
-        local roleSelectDropdown = AceGUI:Create("Dropdown")
-        roleSelectDropdown:SetLabel("Role")
-        roleSelectDropdown:SetText("Select a role")
-        roleSelectDropdown:SetList({"Tank", "Healer", "Caster", "Melee"})
-        GoodEPGP.standingsFrame:AddChild(roleSelectDropdown)
+        GoodEPGP.standingsFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel("Role")
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetText("Select a role")
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetList(roleList)
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetCallback("OnValueChanged", function(widget)
+            local selectedRole = roleList[widget:GetValue()];
+            GoodEPGP:StandingsFilter("role", selectedRole)
+        end)
+        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.roleSelectDropdown)
 
         -- Create a container for the scrolling content
         GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup")
@@ -109,6 +162,7 @@ function GoodEPGP:ShowStandings()
         -- Add our header line, and specify the sorting function to us
         GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
 
+        -- Hide our standings frame
         GoodEPGP.standingsFrame:Hide()
     end
 
@@ -134,6 +188,7 @@ function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
         -- Attach the label to our parent frame
         frame:AddChild(headerLabel)
     end
+
 end
 
 -- Sort the EPGP standings tables
@@ -184,28 +239,58 @@ function GoodEPGP:StandingsSort(sortColumn)
     
     local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
     if (selectedClass ~= nil) then
-        GoodEPGP:FilterStandings("class", selectedClass)
+        GoodEPGP:StandingsFilter("class", selectedClass)
+    end
+
+    local selectedRole = roleList[GoodEPGP.standingsFrame.roleSelectDropdown:GetValue()]
+    if (selectedRole ~= nil) then
+        GoodEPGP:StandingsFilter("role", selectedRole)
     end
 end
 
 -- Filter the EPGP standings
-function GoodEPGP:FilterStandings(type, filterValue)
+function GoodEPGP:StandingsFilter(type, filterValue)
     for key, standingsLine in pairs(GoodEPGP.standingsLinesFrames) do
         for fieldKey, field in pairs(standingsLine) do
-            field:SetText("")
-            field:SetHeight(1)
+            if (fieldKey ~= "group") then
+                field:SetText("")
+            end
         end
     end
 
-    -- Go through our standings and display them
-    local counter = 1
-    for key, player in pairs(GoodEPGPCachedStandings) do
-        if (player.class == filterValue or filterValue == 'All Classes') then
-            GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
-            counter = counter + 1
-        end
+    if (type == "role") then
+        GoodEPGP.standingsFrame.classSelectDropdown:SetValue("")
+
+        -- Go through our standings and display them
+        local counter = 1
+        local combos = validCombos[filterValue]
+        for key, player in pairs(GoodEPGPCachedStandings) do
+            if (filterValue == "All Roles") then
+                GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+                counter = counter + 1
+            else
+                for comboKey, combo in pairs(combos) do
+                    if (combo.class == player.class and combo.spec == player.spec) then
+                        GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+                        counter = counter + 1
+                    end
+                end
+            end
+        end    
     end
 
+    if (type == "class") then
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetValue("")
+
+        -- Go through our standings and display them
+        local counter = 1
+        for key, player in pairs(GoodEPGPCachedStandings) do
+            if (player.class == filterValue or filterValue == "All Classes") then
+                GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+                counter = counter + 1
+            end
+        end
+    end
 end
 
 
@@ -220,22 +305,10 @@ function GoodEPGP:AddStandingLine(player, frame, index)
     -- Our list of fields and related widths
     local fields = {
         {["field"] = "name", ["width"] = 200},
-        {["field"] = "class", ["width"] = 150},
+        {["field"] = "class", ["width"] = 100},
         {["field"] = "ep", ["width"] = 80},
         {["field"] = "gp", ["width"] = 80},
         {["field"] = "pr", ["width"] = 80},
-    }
-
-    local classColors = {
-        ["Druid"] = {["r"] = 1.00, ["g"] = .49, ["b"] = .04},
-        ["Hunter"] = {["r"] = .67, ["g"] = .83, ["b"] = .45},
-        ["Mage"] = {["r"] = .25, ["g"] = .78, ["b"] = .92},
-        ["Paladin"] = {["r"] = .96, ["g"] = .55, ["b"] = .73},
-        ["Priest"] = {["r"] = 1.00, ["g"] = 1.00, ["b"] = 1.00},
-        ["Rogue"] = {["r"] = 1.00, ["g"] = .96, ["b"] = .41},
-        ["Shaman"] = {["r"] = .00, ["g"] = .44, ["b"] = .87},
-        ["Warlock"] = {["r"] = .53, ["g"] = .53, ["b"] = .93},
-        ["Warrior"] = {["r"] = .78, ["g"] = .61, ["b"] = .43},
     }
 
     -- Get our player's class color
@@ -252,25 +325,38 @@ function GoodEPGP:AddStandingLine(player, frame, index)
                 standingLabel:SetColor(classColor.r, classColor.g, classColor.b)
             end
             standingLabel:SetText(player[field.field])
-            standingLabel:SetHeight(300)
+        end
+
+        if (index % 2 == 1) then
+            standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+            standingLine["group"].frame:SetBackdropColor(0, 0, 0, .8)
+            standingLine["group"].frame:SetBackdropBorderColor(.78, 0.61, 0.43, 1)
         end
 
     else
         local standingLine = {};
 
+        labelGroup = AceGUI:Create("SimpleGroup")
+        labelGroup:SetLayout("Flow")
+        labelGroup:SetRelativeWidth(1)
+
         -- Our frames didn't already exist -- create them!
         for key, field in pairs(fields) do
-            local label = AceGUI:Create("Label")
+            local label = AceGUI:Create("InteractiveLabel")
             if (field.field == "class" or field.field == "name") then
                 label:SetColor(classColor.r, classColor.g, classColor.b)
             end
             label:SetText(player[field.field])
             label:SetWidth(field.width)
-            frame:AddChild(label)
+            labelGroup:AddChild(label)
 
             -- Add the new label frame to the standingLine table for re-use later
             standingLine[field.field] = label
         end
+
+        frame:AddChild(labelGroup)
+
+        standingLine["group"] = labelGroup
 
         -- Add our new standingLine table to the standingsLinesFrames table for later use
         GoodEPGP.standingsLinesFrames[index] = standingLine
