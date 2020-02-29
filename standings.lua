@@ -208,22 +208,44 @@ function GoodEPGP:AddStandingLine(player, frame, index)
         {["field"] = "pr", ["width"] = 80},
     }
 
+    local classColors = {
+        ["Druid"] = {["r"] = 1.00, ["g"] = .49, ["b"] = .04},
+        ["Hunter"] = {["r"] = .67, ["g"] = .83, ["b"] = .45},
+        ["Mage"] = {["r"] = .25, ["g"] = .78, ["b"] = .92},
+        ["Paladin"] = {["r"] = .96, ["g"] = .55, ["b"] = .73},
+        ["Priest"] = {["r"] = 1.00, ["g"] = 1.00, ["b"] = 1.00},
+        ["Rogue"] = {["r"] = 1.00, ["g"] = .96, ["b"] = .41},
+        ["Shaman"] = {["r"] = .00, ["g"] = .44, ["b"] = .87},
+        ["Warlock"] = {["r"] = .53, ["g"] = .53, ["b"] = .93},
+        ["Warrior"] = {["r"] = .78, ["g"] = .61, ["b"] = .43},
+    }
+
+    -- Get our player's class color
+    local playerClass = player["class"]
+    local classColor = classColors[playerClass]
+    
     -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the standingsFrame table
     if (GoodEPGP.standingsLinesFrames[index]) then
         local standingLine = GoodEPGP.standingsLinesFrames[index]
         -- Loop through each of the fields in our line and adjust the text of the frame.
         for key, field in pairs(fields) do
             local standingLabel = standingLine[field.field]
+            if (field.field == "class" or field.field == "name") then
+                standingLabel:SetColor(classColor.r, classColor.g, classColor.b)
+            end
             standingLabel:SetText(player[field.field])
             standingLabel:SetHeight(300)
         end
 
     else
         local standingLine = {};
-        
+
         -- Our frames didn't already exist -- create them!
         for key, field in pairs(fields) do
             local label = AceGUI:Create("Label")
+            if (field.field == "class" or field.field == "name") then
+                label:SetColor(classColor.r, classColor.g, classColor.b)
+            end
             label:SetText(player[field.field])
             label:SetWidth(field.width)
             frame:AddChild(label)
