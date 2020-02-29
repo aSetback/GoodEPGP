@@ -21,11 +21,11 @@ function GoodEPGP:ReceiveStandings(text)
             table.insert(GoodEPGPCachedStandings, playerInfo)
         end
     end
-    
+
 end
 
 -- Request standings
-function GoodEPGP:RequestStandings() 
+function GoodEPGP:RequestStandings()
     GoodEPGP:AddonMessage("requestStandings")
     GoodEPGP.requestStandings = true
 end
@@ -44,8 +44,8 @@ function GoodEPGP:ShowStandings()
     if (GoodEPGP.standingsFrame == nil) then
         -- Create the overall frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
-        GoodEPGP.standingsFrame:SetTitle("GoodEPGP")
-        GoodEPGP.standingsFrame:SetStatusText("EPGP Standings")
+        GoodEPGP.standingsFrame:SetTitle("EPGP Standings")
+        GoodEPGP.standingsFrame:SetStatusText("Last Updated: ***")
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
 
@@ -54,10 +54,10 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsScrollContainer:SetFullWidth(true)
         GoodEPGP.standingsScrollContainer:SetFullHeight(true)
         GoodEPGP.standingsScrollContainer:SetLayout("Fill")
-        
+
         -- Add scrolling container to parent
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsScrollContainer)
-        
+
         -- Add the actual frame for the scrolling standings to go to
         GoodEPGP.standingsScrollFrame = AceGUI:Create("ScrollFrame")
         GoodEPGP.standingsScrollFrame:SetLayout("Flow")
@@ -71,13 +71,13 @@ function GoodEPGP:ShowStandings()
             {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
             {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
         }
-    
+
         -- Add our header line, and specify the sorting function to us
         GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
 
         GoodEPGP.standingsFrame:Hide()
     end
-    
+
     -- Go through our standings and display them
     for key, player in pairs(GoodEPGPCachedStandings) do
         GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
@@ -86,14 +86,14 @@ end
 
 -- Display header line
 function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
-    -- Loop through our table of headers and display them    
+    -- Loop through our table of headers and display them
     for key, values in pairs(headers) do
         local headerLabel = AceGUI:Create("InteractiveLabel")
         headerLabel:SetText(values.label)
         headerLabel:SetWidth(values.width)
 
         -- Add our sorting event on click
-        headerLabel:SetCallback("OnClick", function() 
+        headerLabel:SetCallback("OnClick", function()
             GoodEPGP[sortFunction](GoodEPGP, values.sortColumn)
         end)
 
@@ -208,7 +208,7 @@ function GoodEPGP:SendStandings(requestor)
         local member = GoodEPGP:GetGuildMemberByName(name)
         table.insert(standings, member)
     end
-    
+
     -- Generate our broadcast string
     local broadcast = ""
     for key, player in pairs(standings) do
@@ -222,7 +222,7 @@ function GoodEPGP:SendStandings(requestor)
         end
     end
 
-    -- If there's a remainder message that didn't quite hit the 
+    -- If there's a remainder message that didn't quite hit the
     if (broadcast ~= "") then
         GoodEPGP:AddonMessage("S:" .. broadcast, requestor)
     end
@@ -241,20 +241,20 @@ function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
     -- Make sure we have a class
     if (class == nil) then
         return nil
-    end    
+    end
 
     -- Retrieve our standings by class(es)
     local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
     if (classStandings == nil or #classStandings == 0) then
         return
     end
-    
+
     -- Check if minimum is set and numeric
     minimumPrio = tonumber(minimumPrio)
     if (minimumPrio == nil) then
         minimumPrio = .1
     end
-    
+
     -- Loop through our classStandings table and show every line above minimum prio
     for key, memberInfo in pairs(classStandings) do
         if (tonumber(memberInfo.pr) >= tonumber(minimumPrio)) then
@@ -283,7 +283,7 @@ function GoodEPGP:GetStandingsByClass(class)
         if (member == nil) then
             return classStandings
         end
-        if (classes ~= nil) then 
+        if (classes ~= nil) then
             for classKey, className in pairs(classes) do
                 if (member.class == GoodEPGP:UCFirst(className)) then
                     table.insert(classStandings, member)
