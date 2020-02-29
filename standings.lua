@@ -42,12 +42,31 @@ end
 function GoodEPGP:ShowStandings()
     -- Create the standingsFrame if it doesn't exist.
     if (GoodEPGP.standingsFrame == nil) then
+
         -- Create the overall frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
         GoodEPGP.standingsFrame:SetTitle("EPGP Standings")
         GoodEPGP.standingsFrame:SetStatusText("Last Updated: ***")
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
+
+        -- Create navigation at the top
+        local classSelectDropdown = AceGUI:Create("Dropdown")
+        local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
+        classSelectDropdown:SetLabel("Class")
+        classSelectDropdown:SetText("Select a class")
+        classSelectDropdown:SetList(classList)
+        classSelectDropdown:SetCallback("OnValueChanged", function(widget)
+            local selectedClass = classList[widget:GetValue()];
+            GoodEPGP:FilterStandings("class", selectedClass)
+        end)
+        GoodEPGP.standingsFrame:AddChild(classSelectDropdown)
+
+        local roleSelectDropdown = AceGUI:Create("Dropdown")
+        roleSelectDropdown:SetLabel("Role")
+        roleSelectDropdown:SetText("Select a role")
+        roleSelectDropdown:SetList({"Tank", "Healer", "Caster", "Melee"})
+        GoodEPGP.standingsFrame:AddChild(roleSelectDropdown)
 
         -- Create a container for the scrolling content
         GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup")
@@ -151,12 +170,33 @@ function GoodEPGP:StandingsSort(sortColumn)
     GoodEPGP:ShowStandings()
 end
 
+-- Filter the EPGP standings
+function GoodEPGP:FilterStandings(type, filterValue)
+    for key, standingsLine in pairs(GoodEPGP.standingsLinesFrames) do
+        for fieldKey, field in pairs(standingsLine) do
+            field:SetText("")
+            field:SetHeight(1)
+        end
+    end
+
+    -- Go through our standings and display them
+    local counter = 1
+    for key, player in pairs(GoodEPGPCachedStandings) do
+        if (player.class == filterValue or filterValue == 'All Classes') then
+            GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+            counter = counter + 1
+        end
+    end
+
+end
+
+
 -- Display a single line of standings
 function GoodEPGP:AddStandingLine(player, frame, index)
 
     -- Set up a table of standings frame lines
-    if (GoodEPGP.standingsFrames == nil) then
-        GoodEPGP.standingsFrames = {}
+    if (GoodEPGP.standingsLinesFrames == nil) then
+        GoodEPGP.standingsLinesFrames = {}
     end
 
     -- Our list of fields and related widths
@@ -169,16 +209,18 @@ function GoodEPGP:AddStandingLine(player, frame, index)
     }
 
     -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the standingsFrame table
-    if (GoodEPGP.standingsFrames[index]) then
-        local standingLine = GoodEPGP.standingsFrames[index]
+    if (GoodEPGP.standingsLinesFrames[index]) then
+        local standingLine = GoodEPGP.standingsLinesFrames[index]
         -- Loop through each of the fields in our line and adjust the text of the frame.
         for key, field in pairs(fields) do
             local standingLabel = standingLine[field.field]
             standingLabel:SetText(player[field.field])
+            standingLabel:SetHeight(300)
         end
+
     else
         local standingLine = {};
-
+        
         -- Our frames didn't already exist -- create them!
         for key, field in pairs(fields) do
             local label = AceGUI:Create("Label")
@@ -190,8 +232,8 @@ function GoodEPGP:AddStandingLine(player, frame, index)
             standingLine[field.field] = label
         end
 
-        -- Add our new standingLine table to the standingsFrames table for later use
-        GoodEPGP.standingsFrames[index] = standingLine
+        -- Add our new standingLine table to the standingsLinesFrames table for later use
+        GoodEPGP.standingsLinesFrames[index] = standingLine
     end
 end
 
