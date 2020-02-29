@@ -33,8 +33,15 @@ function GoodEPGP:OnInitialize()
         GoodEPGPCachedStandings = {}
     end
 
-    -- Retrieve the most recent standings if possible
+	-- Set up our cached price table
+	if (GoodEPGPCachedPrices == nil) then
+		GoodEPGPCachedPrices = {}
+	end
+
+    -- Retrieve the most recent standings and import prices if possible
     GoodEPGP:ShowStandings()
+	GoodEPGP:BuildPrices()
+	GoodEPGP:ShowPrices()
 end
 
 -- Alert the player the add-on has started, and register our events.
@@ -49,10 +56,10 @@ function GoodEPGP:OnEnable()
         {["type"] = "Heading", ["text"] = "Debug"},
         {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
     }
-    
+
     -- Notify that debug is enabled
     GoodEPGP:Debug('Debug is enabled.')
-    
+
     -- Events
     self:RegisterEvent("LOOT_OPENED")
     self:RegisterEvent("LOOT_CLOSED")
@@ -90,7 +97,7 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
             end
         end
 
-        if (text == "getStandings") then 
+        if (text == "getStandings") then
             GoodEPGP:SendStandings(player)
         end
 
@@ -115,9 +122,9 @@ function GoodEPGP:BagClickHooks()
         for slot = 1, bagSlots do
             local buttonName = "ContainerFrame" .. bag .. "Item" .. slot
             if (_G[buttonName] ~= nil) then
-                _G[buttonName]:HookScript("OnClick", function(button, data)                
+                _G[buttonName]:HookScript("OnClick", function(button, data)
                     GoodEPGP:BagLootClick(bag - 1, (bagSlots - slot + 1), data);
-                end)    
+                end)
             end
         end
     end
@@ -128,7 +135,7 @@ function GoodEPGP:LOOT_OPENED()
 	local n = GetNumLootItems()
     for i = 1, n do
         local buttonName = "LootButton" .. tostring(i)
-        
+
         local buttonExists = false
         for j = 0, #GoodEPGP.lootButtons do
             if (GoodEPGP.lootButtons[j] == buttonName) then
@@ -140,9 +147,9 @@ function GoodEPGP:LOOT_OPENED()
             table.insert(GoodEPGP.lootButtons, buttonName)
             local button = _G[buttonName]
             if (button ~= nil) then
-                _G[buttonName]:HookScript("OnClick", function(button, data)                
+                _G[buttonName]:HookScript("OnClick", function(button, data)
                     GoodEPGP:LootClick(button, data, button.slot);
-                end)    
+                end)
             end
         end
 	end
@@ -163,7 +170,7 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
         if (string.find(whisperText, " ") == nil) then
             return
         end
-        
+
         -- Separate out the actual command and parameters, send them to PublicCommand
         local command = string.sub(whisperText, string.find(whisperText, " ") + 1)
         GoodEPGP:PublicCommands(command, player)
@@ -171,12 +178,12 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     end
 
     -- Prevent further processing if it's not a bid
-    if (whisperText ~= "+" and whisperText ~= "-") then 
+    if (whisperText ~= "+" and whisperText ~= "-") then
         return
     end
 
     -- Handle bidding
-    if (GoodEPGP.activeBid ~= true) then 
+    if (GoodEPGP.activeBid ~= true) then
         return
     end
 
@@ -199,7 +206,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
     local arg1 = select(2, strsplit(" ", commandMessage))
     local arg2 = select(3, strsplit(" ", commandMessage))
     local arg3 = select(4, strsplit(" ", commandMessage))
-    
+
     -- Add EP to a player
     if (command == "ep") then
         if (arg1 ~= "" and arg2 ~= "") then
@@ -238,7 +245,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
     if (command == "reset") then
         GoodEPGP:Reset()
     end
-    
+
     -- Charge a player for an item
     if (command == "charge") then
         GoodEPGP:ChargeForItem(arg1, arg2, arg3)
@@ -256,7 +263,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
     end
 
     if (command == "prices") then
-        GoodEPGP:ShowPrices();
+        GoodEPGP.pricesFrame:Show()
     end
 
 end
@@ -328,7 +335,7 @@ function GoodEPGP:BagLootClick(bag, slot, data)
         GoodEPGP.activeItem = itemLink
 
         -- If the alt key is being run down, run a EPGP  bid
-        if (IsAltKeyDown()) then 
+        if (IsAltKeyDown()) then
             -- Alt + Left Click
             if (data == "LeftButton") then
                 GoodEPGP:StartBid(itemID)
@@ -345,14 +352,14 @@ function GoodEPGP:LootClick(button, data, key)
     if (item == nil) then
         return
     end
-    
+
     -- Set our object vars to remember what's being currently looted.
     local itemName = select(1, GetItemInfo(item))
     local itemLink = select(2, GetItemInfo(item))
     local itemQuality = select(3, GetItemInfo(item))
     local itemID = select(2, strsplit(":", itemLink, 3))
     GoodEPGP.activeItemIndex = key
-    GoodEPGP.activeItem = item   
+    GoodEPGP.activeItem = item
 
     -- You can only ML stuff that's uncommon +
     if (itemQuality <= 1) then
@@ -360,7 +367,7 @@ function GoodEPGP:LootClick(button, data, key)
     end
 
     -- If the alt key is being run down, run a EPGP  bid
-    if (IsAltKeyDown()) then 
+    if (IsAltKeyDown()) then
         -- Alt + Left Click
         if (data == "LeftButton") then
             GoodEPGP:StartBid(itemID)
@@ -400,7 +407,7 @@ end
 function GoodEPGP:LootToSelf()
     -- Get player's name
     local playerName = UnitName("player")
-    
+
     -- Retrieve player's master loot index
     candidateIndex = GoodEPGP:MasterLootByName(playerName)
 end
@@ -435,7 +442,7 @@ function GoodEPGP:ShowPrice(item, type, playerName)
 end
 
 -- Gets a list of all item IDs that match item name
-function GoodEPGP:GetWildcardItemIDs(item) 
+function GoodEPGP:GetWildcardItemIDs(item)
     local itemIDs = {}
     for key, value in pairs(GoodEPGP.prices) do
         if (string.find(value[2]:lower(), item:lower()) ~= nil) then
@@ -458,7 +465,7 @@ function GoodEPGP:DisplayPrice(itemID, type, playerName)
 
     -- Retrieve item info from the database asynchronously
     local item = Item:CreateFromItemID(itemID)
-    item:ContinueOnItemLoad(function() 
+    item:ContinueOnItemLoad(function()
         local itemName = select(1, GetItemInfo(itemID))
         local itemLink = select(2, GetItemInfo(itemID))
         local itemPrice = GoodEPGP:GetPrice(itemID)
@@ -470,7 +477,7 @@ end
 -- Get an item's ID based on the name (retrived from prices.lua)
 function GoodEPGP:GetItemID(itemString)
     local itemID = nil
-    
+
     -- Attempt to retrieve item info by name / item link
     local itemLink = select(2, GetItemInfo(itemString))
     if (itemLink ~= nil) then
@@ -557,13 +564,13 @@ function GoodEPGP:ExportGuildRoster()
 end
 
 -- Converts a our Lua table to json string for processing
-function GoodEPGP:ConvertToJSON(table) 
+function GoodEPGP:ConvertToJSON(table)
     local jsonString = ""
     jsonString = jsonString .. "["
     for key, playerTable in pairs(table) do
         jsonString = jsonString .. "{"
         for infoKey, infoValue in pairs(playerTable) do
-            jsonString = jsonString .. "\"" .. infoKey .. "\": \"" .. infoValue .. "\", "  
+            jsonString = jsonString .. "\"" .. infoKey .. "\": \"" .. infoValue .. "\", "
         end
         jsonString = jsonString:sub(1, -3) .. "},"
     end
@@ -626,15 +633,15 @@ function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
                 end
                 if (addGp ~= nil) then
                     gp = tonumber(gp) + tonumber(addGp)
-                end                
+                end
             end
         end
-    end 
+    end
 
     -- Round our EP & GP
     ep = GoodEPGP:Round(ep, 2)
     gp = GoodEPGP:Round(gp, 2)
-    
+
     -- Set the EPGP record
     for i = 1, GetNumGuildMembers() do
         local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(i)
@@ -664,7 +671,7 @@ function GoodEPGP:SetSpec(player, spec)
             GoodEPGP:Debug(playerClass)
         end
     end
-    
+
     -- Loop through and check if this is a valid spec
     local validSpec = false
     for key, value in pairs(GoodEPGP.specs) do
@@ -694,7 +701,7 @@ function GoodEPGP:GetGuildMemberByName(name)
     local playerInfo
     if (name == nil) then
         GoodEPGP:Debug("Empty name for guild member lookup.")
-    else 
+    else
         for i = 1, GetNumGuildMembers() do
             local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
             -- Strip the server name
@@ -741,7 +748,7 @@ function GoodEPGP:Decay()
         if (string.find(officerNote, ",") == nil) then
             officerNote = '0,' .. GoodEPGP.config.minGP
         end
-        
+
         local ep = select(1, strsplit(",", officerNote))
         local gp = select(2, strsplit(",", officerNote))
         ep = tonumber(ep)
@@ -770,7 +777,7 @@ function GoodEPGP:RoundPoints()
         if (string.find(officerNote, ",") == nil) then
             officerNote = '0,' .. GoodEPGP.config.minGP
         end
-        
+
         local ep = select(1, strsplit(",", officerNote))
         local gp = select(2, strsplit(",", officerNote))
         ep = tonumber(ep)
@@ -813,7 +820,7 @@ function GoodEPGP:AddEPToRaid(amount)
 end
 
 -- Add a certain amount of EP to a comma delimited list of guild members
-function GoodEPGP:AddEPToList(list, amount) 
+function GoodEPGP:AddEPToList(list, amount)
     list = GoodEPGP:SplitString(list, ",")
     for key, member in pairs(list) do
         GoodEPGP:AddEPByName(member, amount)
@@ -826,24 +833,24 @@ function GoodEPGP:ConfirmAwardItem(playerName, type)
     GoodEPGP:HideBidFrame()
 
     local confirmString = "Are you sure you want to loot this item to " .. playerName .. " as " .. type .. "?"
-    GoodEPGP:ConfirmAction(confirmString, function() 
+    GoodEPGP:ConfirmAction(confirmString, function()
         GoodEPGP:AwardItem(playerName, type)
     end,
-    function() 
-        GoodEPGP:UpdateBidFrame() 
+    function()
+        GoodEPGP:UpdateBidFrame()
     end)
 end
 
 -- Award the current item up for bids to player by namne.  priceType = (ms|os)
 function GoodEPGP:AwardItem(playerName, priceType)
-    -- Format player's name 
+    -- Format player's name
     playerName = GoodEPGP:UCFirst(playerName)
 
     -- Retrive player's candidate index by name
     if (GoodEPGP.activeItemIndex ~= 'bag') then
         GoodEPGP:MasterLootByName(playerName)
     end
-   
+
     -- Award main spec or offspec GP
     local chargedPrice = GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem, priceType)
 
@@ -860,7 +867,7 @@ function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
     end
 
     local price = GoodEPGP:GetPrice(itemID)
-    if (priceType == 'os') then 
+    if (priceType == 'os') then
         price = GoodEPGP:Round(price * .25, 2)
     end
 
@@ -876,8 +883,8 @@ function GoodEPGP:OpenOptions()
     GoodEPGP.optionFrame:SetTitle("GoodEPGP Options")
     GoodEPGP.optionFrame:SetStatusText("Configure your GoodEPGP")
     GoodEPGP.optionFrame:SetLayout("List")
-    GoodEPGP.optionFrame:SetCallback("OnClose", function(widget) 
-        AceGUI:Release(widget) 
+    GoodEPGP.optionFrame:SetCallback("OnClose", function(widget)
+        AceGUI:Release(widget)
         GoodEPGP.optionFrame = nil
     end)
 
@@ -919,8 +926,8 @@ function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidFrame = AceGUI:Create("Frame")
     GoodEPGP.bidFrame:SetTitle("GoodEPGP")
     GoodEPGP.bidFrame:SetStatusText("Current bids for " .. GoodEPGP.activeItem)
-    GoodEPGP.bidFrame:SetCallback("OnClose", function(widget) 
-        AceGUI:Release(widget) 
+    GoodEPGP.bidFrame:SetCallback("OnClose", function(widget)
+        AceGUI:Release(widget)
         GoodEPGP.bidFrame = nil
     end)
     GoodEPGP.bidFrame:SetLayout("Flow")
@@ -931,7 +938,7 @@ function GoodEPGP:HideBidFrame()
     if (GoodEPGP.bidFrame == nil) then
         return
     end
-    AceGUI:Release(GoodEPGP.bidFrame) 
+    AceGUI:Release(GoodEPGP.bidFrame)
     GoodEPGP.bidFrame = nil
 end
 
@@ -968,7 +975,7 @@ function GoodEPGP:UpdateBidFrame()
 
     -- Add title
     GoodEPGP:AddBidFrameTitle("Off Spec")
-        
+
     -- Add Header
     GoodEPGP:AddBidFrameHeader()
 
@@ -1020,7 +1027,7 @@ function GoodEPGP:AddBidLine(bid, bidType)
     local assignButton = AceGUI:Create("Button")
     assignButton:SetText("Assign")
     assignButton:SetWidth(100)
-    assignButton:SetCallback("OnClick", function() 
+    assignButton:SetCallback("OnClick", function()
         GoodEPGP:ConfirmAwardItem(bid.name, bidType)
     end)
 
@@ -1145,15 +1152,15 @@ function GoodEPGP:WidestAudience(msg, rw)
 end
 
 -- Pad a string
-function GoodEPGP:PadString(originalString, length, padCharacter, direction) 
-    if (padCharacter == nil) then 
-        padCharacter = ' ' 
+function GoodEPGP:PadString(originalString, length, padCharacter, direction)
+    if (padCharacter == nil) then
+        padCharacter = ' '
     end
     if (direction == nil) then
         direction = "right"
     end
     originalString = tostring(originalString)
-    
+
     local padString = ""
     if (direction == "left") then
         padString = string.rep(padCharacter, length - #originalString) .. originalString
@@ -1196,7 +1203,7 @@ function GoodEPGP:ConfirmAction(confirmString, acceptCallback, cancelCalback)
         showAlert = true
     }
 
-    StaticPopup_Show("CONFIRM_ACTION")      
+    StaticPopup_Show("CONFIRM_ACTION")
 end
 
 function GoodEPGP:Debug(message)
