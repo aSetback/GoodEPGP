@@ -1,6 +1,10 @@
 -- Include the AceGUI for frame manipulation
 local AceGUI = LibStub("AceGUI-3.0")
 
+-- Class List
+local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
+
+
 -- Receive standings
 function GoodEPGP:ReceiveStandings(text)
 
@@ -51,16 +55,15 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsFrame:EnableResize(false)
 
         -- Create navigation at the top
-        local classSelectDropdown = AceGUI:Create("Dropdown")
-        local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
-        classSelectDropdown:SetLabel("Class")
-        classSelectDropdown:SetText("Select a class")
-        classSelectDropdown:SetList(classList)
-        classSelectDropdown:SetCallback("OnValueChanged", function(widget)
+        GoodEPGP.standingsFrame.classSelectDropdown = AceGUI:Create("Dropdown")
+        GoodEPGP.standingsFrame.classSelectDropdown:SetLabel("Class")
+        GoodEPGP.standingsFrame.classSelectDropdown:SetText("Select a class")
+        GoodEPGP.standingsFrame.classSelectDropdown:SetList(classList)
+        GoodEPGP.standingsFrame.classSelectDropdown:SetCallback("OnValueChanged", function(widget)
             local selectedClass = classList[widget:GetValue()];
             GoodEPGP:FilterStandings("class", selectedClass)
         end)
-        GoodEPGP.standingsFrame:AddChild(classSelectDropdown)
+        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.classSelectDropdown)
 
         local roleSelectDropdown = AceGUI:Create("Dropdown")
         roleSelectDropdown:SetLabel("Role")
@@ -166,6 +169,11 @@ function GoodEPGP:StandingsSort(sortColumn)
     end)
 
     GoodEPGP:ShowStandings()
+    
+    local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
+    if (selectedClass ~= nil) then
+        GoodEPGP:FilterStandings("class", selectedClass)
+    end
 end
 
 -- Filter the EPGP standings
