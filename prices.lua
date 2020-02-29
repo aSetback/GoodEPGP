@@ -1,6 +1,9 @@
 -- Include the AceGUI for frame manipulation
 local AceGUI = LibStub("AceGUI-3.0")
 
+-- Date format
+local dateFormat = "%m/%d/%y @ %I:%M:%S %p"
+
 local prices = {
   ----------------------
   --- Tier 1         ---
@@ -389,29 +392,29 @@ function GoodEPGP:BuildPrices()
 	end
 end
 
--- Show EPGP standings
+-- Show Price standings
 function GoodEPGP:ShowPrices()
 	-- Create the pricesFrame if it doesn't exist.
 	if (GoodEPGP.pricesFrame == nil) then
 		-- Create the overall frame
 		GoodEPGP.pricesFrame = AceGUI:Create("Frame")
-		GoodEPGP.pricesFrame:SetTitle("EPGP Price List")
-		GoodEPGP.pricesFrame:SetStatusText("Last Updated: ***")
+		GoodEPGP.pricesFrame:SetTitle("GoodEPGP - Price List")
+    GoodEPGP.pricesFrame:SetStatusText("Last Updated: " .. date(dateFormat))
 		GoodEPGP.pricesFrame:SetLayout("Flow")
 		GoodEPGP.pricesFrame:EnableResize(false)
 
 		-- Create a container for the scrolling content
-		GoodEPGP.pricesScrollContainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
+		GoodEPGP.pricesScrollContainer = AceGUI:Create("SimpleGroup")
 		GoodEPGP.pricesScrollContainer:SetFullWidth(true)
-		GoodEPGP.pricesScrollContainer:SetFullHeight(true) -- probably?
-		GoodEPGP.pricesScrollContainer:SetLayout("Fill") -- important!
+		GoodEPGP.pricesScrollContainer:SetFullHeight(true)
+		GoodEPGP.pricesScrollContainer:SetLayout("Fill")
 
 		-- Add scrolling container to parent
 		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesScrollContainer)
 
 		-- Add the actual frame for the scrolling prices to go to
 		GoodEPGP.pricesScrollFrame = AceGUI:Create("ScrollFrame")
-		GoodEPGP.pricesScrollFrame:SetLayout("Flow") -- probably?
+		GoodEPGP.pricesScrollFrame:SetLayout("Flow")
 		GoodEPGP.pricesScrollContainer:AddChild(GoodEPGP.pricesScrollFrame)
 
 		-- Generate labels for each of our headers

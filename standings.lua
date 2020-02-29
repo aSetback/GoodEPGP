@@ -4,6 +4,8 @@ local AceGUI = LibStub("AceGUI-3.0")
 -- Class List
 local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
 
+-- Date format
+local dateFormat = "%m/%d/%y @ %I:%M:%S %p"
 
 -- Receive standings
 function GoodEPGP:ReceiveStandings(text)
@@ -42,6 +44,12 @@ function GoodEPGP:StandingsAvailability(player)
     end
 end
 
+-- Update our last updated timestamp
+function GoodEPGP:StandingsUpdateLastUpdated()
+    GoodEPGPConfig.standingsLastUpdated = GetServerTime()
+    GoodEPGP.standingsFrame:SetStatusText("Last Updated: " .. date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
+end
+
 -- Show EPGP standings
 function GoodEPGP:ShowStandings()
     -- Create the standingsFrame if it doesn't exist.
@@ -49,8 +57,12 @@ function GoodEPGP:ShowStandings()
 
         -- Create the overall frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
-        GoodEPGP.standingsFrame:SetTitle("EPGP Standings")
-        GoodEPGP.standingsFrame:SetStatusText("Last Updated: ***")
+        GoodEPGP.standingsFrame:SetTitle("GoodEPGP - Standings")
+        if (GoodEPGPConfig.standingsLastUpdated == 0)  then
+            GoodEPGP.standingsFrame:SetStatusText("Last Updated: never")
+        else
+            GoodEPGP.standingsFrame:SetStatusText("Last Updated: " .. date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
+        end
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
 

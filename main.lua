@@ -38,6 +38,11 @@ function GoodEPGP:OnInitialize()
 		GoodEPGPCachedPrices = {}
 	end
 
+    -- Initialize our last updated variables
+    if (GoodEPGPConfig.standingsLastUpdated == nil) then
+        GoodEPGPConfig.standingsLastUpdated = 0
+    end
+
     -- Retrieve the most recent standings and import prices if possible
     GoodEPGP:ShowStandings()
 	GoodEPGP:BuildPrices()
@@ -102,6 +107,7 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
         end
 
         if (text == "standingsBroadcastComplete") then
+            GoodEPGP:StandingsUpdateLastUpdated()
             GoodEPGP:StandingsSort("name")
         end
 
