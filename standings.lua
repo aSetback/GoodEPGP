@@ -148,7 +148,6 @@ function GoodEPGP:StandingsSort(sortColumn)
         numeric = true
     end
 
-
     -- Custom sort function
     table.sort(GoodEPGPCachedStandings, function(a, b)
         if (numeric) then
@@ -164,7 +163,6 @@ function GoodEPGP:StandingsSort(sortColumn)
         else
             return a[sortColumn] > b[sortColumn]
         end
-
     end)
 
     GoodEPGP:ShowStandings()

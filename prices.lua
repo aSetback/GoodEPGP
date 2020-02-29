@@ -61,7 +61,7 @@ local prices = {
   [16850] = {43, "Giantstalker Armor"};
   [16851] = {43, "Giantstalker Armor"};
   [16852] = {65, "Giantstalker Armor"};
-  [16853] = {86, "Lawbringer Armor  "};
+  [16853] = {86, "Lawbringer Armor"};
   [16854] = {65, "Lawbringer Armor"};
   [16855] = {65, "Lawbringer Armor"};
   [16856] = {65, "Lawbringer Armor"};
@@ -373,6 +373,7 @@ function GoodEPGP:BuildPrices()
 	for itemID, itemPrice in pairs(GoodEPGP.prices) do
 		local item = Item:CreateFromItemID(itemID)
 		item:ContinueOnItemLoad(function()
+			local rname = select(1, GetItemInfo(itemID))
 			local itemLink = select(2, GetItemInfo(itemID))
 			local gear = itemLink
 			local price = itemPrice[1]
@@ -381,6 +382,7 @@ function GoodEPGP:BuildPrices()
 				["name"] = gear,
 				["ms"] = price,
 				["os"] = osprice,
+				["rname"] = rname,
 			};
 			table.insert(GoodEPGPCachedPrices, priceInfo)
 		end)
@@ -510,11 +512,18 @@ function GoodEPGP:PricesSort(sortColumn)
         end
 
         if (sortOrder == "ASC") then
-            return b[sortColumn] > a[sortColumn]
+			if (sortColumn == "name") then
+				return b.rname > a.rname
+			else
+				return b[sortColumn] > a[sortColumn]
+			end
         else
-            return a[sortColumn] > b[sortColumn]
+			if (sortColumn == "name") then
+				return a.rname > b.rname
+			else
+	            return a[sortColumn] > b[sortColumn]
+			end
         end
-
     end)
 
     GoodEPGP:ShowPrices()
