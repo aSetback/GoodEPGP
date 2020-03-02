@@ -106,7 +106,7 @@ function GoodEPGP:ShowStandings()
 
         -- Create the overall frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
-        GoodEPGP.standingsFrame:SetTitle("GoodEPGP - Standings")
+	    GoodEPGP.standingsFrame:SetTitle("GoodEPGP - Standings")
         if (GoodEPGPConfig.standingsLastUpdated == 0)  then
             GoodEPGP.standingsFrame:SetStatusText("Last Updated: never")
         else
@@ -136,6 +136,28 @@ function GoodEPGP:ShowStandings()
         end)
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.roleSelectDropdown)
 
+		-- Blank Spacer
+		GoodEPGP.standingsFrame.blankSpacer = AceGUI:Create("Label")
+		GoodEPGP.standingsFrame.blankSpacer:SetFullWidth(true)
+		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
+
+		-- 4px padding (hacks!)
+		GoodEPGP.standingsFrame.padding = AceGUI:Create("Label")
+		GoodEPGP.standingsFrame.padding:SetWidth(4)
+		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.padding)
+
+        -- Generate labels for each of our headers
+        local headers = {
+            {["label"] = "Player", ["width"] = 200, ["sortColumn"] = "name"},
+            {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
+            {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
+            {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
+            {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
+        }
+
+        -- Add our header line, and specify the sorting function to us
+        GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsFrame, "StandingsSort")
+
         -- Create a container for the scrolling content
         GoodEPGP.standingsScrollContainer = AceGUI:Create("SimpleGroup")
         GoodEPGP.standingsScrollContainer:SetFullWidth(true)
@@ -149,21 +171,18 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsScrollFrame = AceGUI:Create("ScrollFrame")
         GoodEPGP.standingsScrollFrame:SetLayout("Flow")
         GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
-
-        -- Generate labels for each of our headers
-        local headers = {
-            {["label"] = "Player", ["width"] = 200, ["sortColumn"] = "name"},
-            {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
-            {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
-            {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
-            {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
-        }
-
-        -- Add our header line, and specify the sorting function to us
-        GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsScrollFrame, "StandingsSort")
+		GoodEPGP.standingsScrollFrame:ClearAllPoints()
+		GoodEPGP.standingsScrollFrame:SetPoint("TOP", GoodEPGP.standingsScrollContainer.frame, "TOP", 0, -4)
+		GoodEPGP.standingsScrollFrame:SetPoint("BOTTOM", 0, 4)
+		GoodEPGP.standingsScrollFrame.frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        GoodEPGP.standingsScrollFrame.frame:SetBackdropColor(0, 0, 0, 1)
 
         -- Hide our standings frame
         GoodEPGP.standingsFrame:Hide()
+
+		-- Allows closing hitting ESC
+		_G["GoodEPGP_Standings"] = GoodEPGP.standingsFrame
+		table.insert(UISpecialFrames, "GoodEPGP_Standings")
     end
 
     -- Go through our standings and display them
@@ -177,8 +196,8 @@ function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
     -- Loop through our table of headers and display them
     for key, values in pairs(headers) do
         local headerLabel = AceGUI:Create("InteractiveLabel")
-        headerLabel:SetText(values.label)
         headerLabel:SetWidth(values.width)
+		headerLabel:SetText(values.label)
 
         -- Add our sorting event on click
         headerLabel:SetCallback("OnClick", function()
@@ -188,7 +207,6 @@ function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
         -- Attach the label to our parent frame
         frame:AddChild(headerLabel)
     end
-
 end
 
 -- Sort the EPGP standings tables
@@ -236,7 +254,7 @@ function GoodEPGP:StandingsSort(sortColumn)
     end)
 
     GoodEPGP:ShowStandings()
-    
+
     local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
     if (selectedClass ~= nil) then
         GoodEPGP:StandingsFilter("class", selectedClass)
@@ -276,7 +294,7 @@ function GoodEPGP:StandingsFilter(type, filterValue)
                     end
                 end
             end
-        end    
+        end
     end
 
     if (type == "class") then
@@ -304,17 +322,17 @@ function GoodEPGP:AddStandingLine(player, frame, index)
 
     -- Our list of fields and related widths
     local fields = {
-        {["field"] = "name", ["width"] = 200},
-        {["field"] = "class", ["width"] = 100},
-        {["field"] = "ep", ["width"] = 80},
-        {["field"] = "gp", ["width"] = 80},
-        {["field"] = "pr", ["width"] = 80},
+        {["field"] = "name", ["width"] = 196},
+        {["field"] = "class", ["width"] = 146},
+        {["field"] = "ep", ["width"] = 76},
+        {["field"] = "gp", ["width"] = 76},
+        {["field"] = "pr", ["width"] = 76},
     }
 
     -- Get our player's class color
     local playerClass = player["class"]
     local classColor = classColors[playerClass]
-    
+
     -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the standingsFrame table
     if (GoodEPGP.standingsLinesFrames[index]) then
         local standingLine = GoodEPGP.standingsLinesFrames[index]
@@ -326,34 +344,44 @@ function GoodEPGP:AddStandingLine(player, frame, index)
             end
             standingLabel:SetText(player[field.field])
         end
-
         if (index % 2 == 1) then
+		--[[
             standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-            standingLine["group"].frame:SetBackdropColor(0, 0, 0, .8)
-            standingLine["group"].frame:SetBackdropBorderColor(.78, 0.61, 0.43, 1)
+            standingLine["group"].frame:SetBackdropColor(.2, 0, 0, .8)
+		--]]
+		else
+			standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+            standingLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
         end
-
     else
         local standingLine = {};
-
         labelGroup = AceGUI:Create("SimpleGroup")
         labelGroup:SetLayout("Flow")
         labelGroup:SetRelativeWidth(1)
 
         -- Our frames didn't already exist -- create them!
         for key, field in pairs(fields) do
-            local label = AceGUI:Create("InteractiveLabel")
+            local label = AceGUI:Create("Label")
             if (field.field == "class" or field.field == "name") then
                 label:SetColor(classColor.r, classColor.g, classColor.b)
             end
-            label:SetText(player[field.field])
             label:SetWidth(field.width)
-            labelGroup:AddChild(label)
+			label:SetText(player[field.field])
+			label:SetHeight(14)
+
+			-- add 4px padding to each label group (hacks!)
+			local padding = AceGUI:Create("Label")
+			padding:SetWidth(4)
+			labelGroup:AddChild(padding)
+
+			-- add label to label group
+			labelGroup:AddChild(label)
 
             -- Add the new label frame to the standingLine table for re-use later
             standingLine[field.field] = label
         end
 
+		-- Add label group to standingsScrollFrame
         frame:AddChild(labelGroup)
 
         standingLine["group"] = labelGroup
