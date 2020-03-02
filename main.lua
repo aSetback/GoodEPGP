@@ -269,9 +269,9 @@ function GoodEPGP:PrivateCommands(commandMessage)
     end
 
     if (command == "prices") then
+		GoodEPGP:ShowPrices()
         GoodEPGP.pricesFrame:Show()
     end
-
 end
 
 -- Handle public command parsing / routing

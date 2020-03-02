@@ -76,7 +76,6 @@ function GoodEPGP:ReceiveStandings(text)
             table.insert(GoodEPGPCachedStandings, playerInfo)
         end
     end
-
 end
 
 -- Request standings
@@ -101,6 +100,7 @@ end
 
 -- Show EPGP standings
 function GoodEPGP:ShowStandings()
+
     -- Create the standingsFrame if it doesn't exist.
     if (GoodEPGP.standingsFrame == nil) then
 
@@ -115,7 +115,7 @@ function GoodEPGP:ShowStandings()
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
 
-        -- Create navigation at the top
+        -- Class filter
         GoodEPGP.standingsFrame.classSelectDropdown = AceGUI:Create("Dropdown")
         GoodEPGP.standingsFrame.classSelectDropdown:SetLabel("Class")
         GoodEPGP.standingsFrame.classSelectDropdown:SetText("Select a class")
@@ -126,6 +126,7 @@ function GoodEPGP:ShowStandings()
         end)
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.classSelectDropdown)
 
+		-- Role filter
         GoodEPGP.standingsFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel("Role")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetText("Select a role")
@@ -155,7 +156,7 @@ function GoodEPGP:ShowStandings()
             {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
         }
 
-        -- Add our header line, and specify the sorting function to us
+        -- Add our header line, and specify the sorting function to use
         GoodEPGP:AddHeaderLine(headers, GoodEPGP.standingsFrame, "StandingsSort")
 
         -- Create a container for the scrolling content
@@ -238,6 +239,8 @@ function GoodEPGP:StandingsSort(sortColumn)
 
     -- Custom sort function
     table.sort(GoodEPGPCachedStandings, function(a, b)
+
+		-- If column data is a number then convert raw text to number
         if (numeric) then
             a[sortColumn] = tonumber(a[sortColumn])
             b[sortColumn] = tonumber(b[sortColumn])
@@ -246,6 +249,7 @@ function GoodEPGP:StandingsSort(sortColumn)
             local b = b[sortColumn]
         end
 
+		-- Sort column Ascending or Descending
         if (sortOrder == "ASC") then
             return b[sortColumn] > a[sortColumn]
         else
@@ -255,11 +259,13 @@ function GoodEPGP:StandingsSort(sortColumn)
 
     GoodEPGP:ShowStandings()
 
+	-- Class filters
     local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
     if (selectedClass ~= nil) then
         GoodEPGP:StandingsFilter("class", selectedClass)
     end
 
+	-- Role filters
     local selectedRole = roleList[GoodEPGP.standingsFrame.roleSelectDropdown:GetValue()]
     if (selectedRole ~= nil) then
         GoodEPGP:StandingsFilter("role", selectedRole)
@@ -276,6 +282,7 @@ function GoodEPGP:StandingsFilter(type, filterValue)
         end
     end
 
+	-- Go through our standings and display filers by role
     if (type == "role") then
         GoodEPGP.standingsFrame.classSelectDropdown:SetValue("")
 
@@ -297,10 +304,9 @@ function GoodEPGP:StandingsFilter(type, filterValue)
         end
     end
 
+	-- Go through our standings and display filers by class
     if (type == "class") then
         GoodEPGP.standingsFrame.roleSelectDropdown:SetValue("")
-
-        -- Go through our standings and display them
         local counter = 1
         for key, player in pairs(GoodEPGPCachedStandings) do
             if (player.class == filterValue or filterValue == "All Classes") then
@@ -310,7 +316,6 @@ function GoodEPGP:StandingsFilter(type, filterValue)
         end
     end
 end
-
 
 -- Display a single line of standings
 function GoodEPGP:AddStandingLine(player, frame, index)
@@ -333,10 +338,11 @@ function GoodEPGP:AddStandingLine(player, frame, index)
     local playerClass = player["class"]
     local classColor = classColors[playerClass]
 
-    -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the standingsFrame table
+    -- If the key for this index exists, modify it with possible changes to EP/GP/PRIO, color by class, and add alternating backgrounds for readability
     if (GoodEPGP.standingsLinesFrames[index]) then
         local standingLine = GoodEPGP.standingsLinesFrames[index]
-        -- Loop through each of the fields in our line and adjust the text of the frame.
+
+		-- Loop through each of the fields in our line and update the text of the frame... if applicable
         for key, field in pairs(fields) do
             local standingLabel = standingLine[field.field]
             if (field.field == "class" or field.field == "name") then
@@ -344,31 +350,29 @@ function GoodEPGP:AddStandingLine(player, frame, index)
             end
             standingLabel:SetText(player[field.field])
         end
+
+		-- Add contrasting background to ever other line
         if (index % 2 == 1) then
-		--[[
-            standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-            standingLine["group"].frame:SetBackdropColor(.2, 0, 0, .8)
-		--]]
 		else
 			standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
             standingLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
         end
     else
+
+		-- Our frames didn't already exist - create group
         local standingLine = {};
         labelGroup = AceGUI:Create("SimpleGroup")
         labelGroup:SetLayout("Flow")
         labelGroup:SetRelativeWidth(1)
-       
 
-        -- add 4px padding to each label group (hacks!)
-        local padding = AceGUI:Create("Label")
-        padding:SetWidth(4)
-        labelGroup:AddChild(padding)
-        
+        -- Add 4px padding to label group (hacks!)
+        standingsPadding = AceGUI:Create("Label")
+        standingsPadding:SetWidth(4)
+        labelGroup:AddChild(standingsPadding)
 
-        -- Our frames didn't already exist -- create them!
+		-- Create label
         for key, field in pairs(fields) do
-            local label = AceGUI:Create("Label")
+            label = AceGUI:Create("Label")
             if (field.field == "class" or field.field == "name") then
                 label:SetColor(classColor.r, classColor.g, classColor.b)
             end
@@ -378,17 +382,17 @@ function GoodEPGP:AddStandingLine(player, frame, index)
 			label:SetText(player[field.field])
 			label:SetHeight(14)
 
-			-- add label to label group
+			-- Add label to label group
 			labelGroup:AddChild(label)
 
             -- Add the new label frame to the standingLine table for re-use later
             standingLine[field.field] = label
         end
 
-
 		-- Add label group to standingsScrollFrame
         frame:AddChild(labelGroup)
 
+		-- Set a quick alias
         standingLine["group"] = labelGroup
 
         -- Add our new standingLine table to the standingsLinesFrames table for later use

@@ -374,34 +374,83 @@ GoodEPGP.prices = prices
 -- Query server for data missing from the local client ItemCache then build cached price list
 function GoodEPGP:BuildPrices()
 	for itemID, itemPrice in pairs(GoodEPGP.prices) do
-		local item = Item:CreateFromItemID(itemID)
-		item:ContinueOnItemLoad(function()
-			local rname = select(1, GetItemInfo(itemID))
+
+		-- Checks local cache for item and askes server for data if it doesn't exsist
+		if (GetItemInfo(itemID) == nil) then
+			local item = Item:CreateFromItemID(itemID)
+			item:ContinueOnItemLoad(function()
+				local itemName = select(1, GetItemInfo(itemID))
+				local itemLink = select(2, GetItemInfo(itemID))
+				local itemType = select(6, GetItemInfo(itemID))
+				local itemSubType = select(7, GetItemInfo(itemID))
+				local itemEquipLoc = select(9, GetItemInfo(itemID))
+				local itemSetID = select(16, GetItemInfo(itemID))
+				local price = itemPrice[1]
+				local osprice = tonumber(price) / 4
+				local priceInfo = {
+					["itemName"] = itemName,
+					["itemLink"] = itemLink,
+					["itemType"] = itemType,
+					["itemSubType"] = itemSubType,
+					["itemEquipLoc"] = itemEquipLoc,
+					["itemSetID"] = itemSetID,
+					["ms"] = price,
+					["os"] = osprice,
+				};
+				table.insert(GoodEPGPCachedPrices, priceInfo)
+			end)
+		else
+			-- Item exsists in local cache and data will be pulled from there
+			local itemName = select(1, GetItemInfo(itemID))
 			local itemLink = select(2, GetItemInfo(itemID))
-			local gear = itemLink
+			local itemType = select(6, GetItemInfo(itemID))
+			local itemSubType = select(7, GetItemInfo(itemID))
+			local itemEquipLoc = select(9, GetItemInfo(itemID))
+			local itemSetID = select(16, GetItemInfo(itemID))
 			local price = itemPrice[1]
 			local osprice = tonumber(price) / 4
 			local priceInfo = {
-				["name"] = gear,
+				["itemName"] = itemName,
+				["itemLink"] = itemLink,
+				["itemType"] = itemType,
+				["itemSubType"] = itemSubType,
+				["itemEquipLoc"] = itemEquipLoc,
+				["itemSetID"] = itemSetID,
 				["ms"] = price,
 				["os"] = osprice,
-				["rname"] = rname,
 			};
 			table.insert(GoodEPGPCachedPrices, priceInfo)
-		end)
+		end
 	end
 end
 
 -- Show Price standings
 function GoodEPGP:ShowPrices()
+
 	-- Create the pricesFrame if it doesn't exist.
 	if (GoodEPGP.pricesFrame == nil) then
+
 		-- Create the overall frame
 		GoodEPGP.pricesFrame = AceGUI:Create("Frame")
 		GoodEPGP.pricesFrame:SetTitle("GoodEPGP - Price List")
-    GoodEPGP.pricesFrame:SetStatusText("Last Updated: " .. date(dateFormat))
+		GoodEPGP.pricesFrame:SetStatusText("Last Updated: " .. date(dateFormat))
 		GoodEPGP.pricesFrame:SetLayout("Flow")
 		GoodEPGP.pricesFrame:EnableResize(false)
+
+		-- 4px padding (hacks!)
+		GoodEPGP.pricesFrame.padding = AceGUI:Create("Label")
+		GoodEPGP.pricesFrame.padding:SetWidth(4)
+		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.padding)
+
+		-- Generate labels for each of our headers
+		local headers = {
+		  {["label"] = "Item", ["width"] = 300, ["sortColumn"] = "name"},
+		  {["label"] = "MS", ["width"] = 100, ["sortColumn"] = "ms"},
+		  {["label"] = "OS", ["width"] = 100, ["sortColumn"] = "os"},
+		}
+
+		-- Add our header line, and specify the sorting function to us
+		GoodEPGP:AddHeaderLine(headers, GoodEPGP.pricesFrame, "PricesSort")
 
 		-- Create a container for the scrolling content
 		GoodEPGP.pricesScrollContainer = AceGUI:Create("SimpleGroup")
@@ -417,17 +466,18 @@ function GoodEPGP:ShowPrices()
 		GoodEPGP.pricesScrollFrame:SetLayout("Flow")
 		GoodEPGP.pricesScrollContainer:AddChild(GoodEPGP.pricesScrollFrame)
 
-		-- Generate labels for each of our headers
-		local headers = {
-		  {["label"] = "Item", ["width"] = 300, ["sortColumn"] = "name"},
-		  {["label"] = "MS", ["width"] = 100, ["sortColumn"] = "ms"},
-		  {["label"] = "OS", ["width"] = 100, ["sortColumn"] = "os"},
-		}
+		GoodEPGP.pricesScrollFrame:ClearAllPoints()
+		GoodEPGP.pricesScrollFrame:SetPoint("TOP", GoodEPGP.pricesScrollContainer.frame, "TOP", 0, -4)
+		GoodEPGP.pricesScrollFrame:SetPoint("BOTTOM", 0, 4)
+		GoodEPGP.pricesScrollFrame.frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        GoodEPGP.pricesScrollFrame.frame:SetBackdropColor(0, 0, 0, 1)
 
-		-- Add our header line, and specify the sorting function to us
-		GoodEPGP:AddHeaderLine(headers, GoodEPGP.pricesScrollFrame, "PricesSort")
-
+		-- Hide our prices frame
 		GoodEPGP.pricesFrame:Hide()
+
+		-- Allows closing hitting ESC
+		_G["GoodEPGP_Prices"] = GoodEPGP.pricesFrame
+		table.insert(UISpecialFrames, "GoodEPGP_Prices")
 	end
 
 	-- Go through our prices and display them
@@ -436,6 +486,7 @@ function GoodEPGP:ShowPrices()
 	end
 end
 
+-- Display a single line of prices
 function GoodEPGP:AddPriceLine(item, frame, index)
 
 	-- Set up a table of pricesFrame lines
@@ -445,36 +496,74 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 
 	-- Our list of fields and related widths
 	local fields = {
-        {["field"] = "name", ["width"] = 300},
-        {["field"] = "ms", ["width"] = 100},
-        {["field"] = "os", ["width"] = 100},
-    }
+		{["field"] = "itemLink", ["width"] = 300},
+		{["field"] = "ms", ["width"] = 100},
+		{["field"] = "os", ["width"] = 100},
+	}
 
-    -- If the key for this index exists, modify it .. otherwise create a new label and insert it into a table to insert into the pricesFrame table
-    if (GoodEPGP.pricesFrame[index]) then
-        local pricesLine = GoodEPGP.pricesFrame[index]
-        -- Loop through each of the fields in our line and adjust the text of the frame.
-        for key, field in pairs(fields) do
-            local pricesLabel = pricesLine[field.field]
-            pricesLabel:SetText(item[field.field])
-        end
-    else
-        local pricesLine = {};
+	-- If the key for this index exists, modify it with possible changes to prices and add alternating backgrounds for readability
+	if (GoodEPGP.pricesFrame[index]) then
+		local pricesLine = GoodEPGP.pricesFrame[index]
 
-        -- Our frames didn't already exist -- create them!
-        for key, field in pairs(fields) do
-            local label = AceGUI:Create("Label")
-            label:SetText(item[field.field])
-            label:SetWidth(field.width)
-            frame:AddChild(label)
+		-- Loop through each of the fields in our line and update the text of the frame and build the tooltips... if applicable
+		for key, field in pairs(fields) do
+			local pricesLabel = pricesLine[field.field]
+			if (field.field == "itemLink") then
+				pricesLabel:SetCallback("OnClick", function()
+					ItemRefTooltip:SetOwner(GoodEPGP.pricesFrame.frame, "ANCHOR_LEFT", 0, -400)
+					ItemRefTooltip:SetHyperlink(item[field.field])
+					ItemRefTooltip:Show()
+				end)
+			end
+			pricesLabel:SetText(item[field.field])
+		end
 
-            -- Add the new label frame to the pricesLine table for re-use later
-            pricesLine[field.field] = label
-        end
+		-- Add contrasting background to ever other line
+		if (index % 2 == 1) then
+		else
+			pricesLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+			pricesLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
+		end
+	else
 
-        -- Add our new pricesLine table to the pricesFrames table for later use
-        GoodEPGP.pricesFrame[index] = pricesLine
-    end
+		-- Our frames didn't already exist - create group
+		local pricesLine = {};
+		labelGroup = AceGUI:Create("SimpleGroup")
+		labelGroup:SetLayout("Flow")
+		labelGroup:SetRelativeWidth(1)
+
+		-- Add 4px padding to label group (hacks!)
+		pricesPadding = AceGUI:Create("Label")
+		pricesPadding:SetWidth(4)
+		labelGroup:AddChild(pricesPadding)
+
+		-- Create label
+		for key, field in pairs(fields) do
+			if (field.field == "itemLink") then
+				label = AceGUI:Create("InteractiveLabel")
+			else
+				label = AceGUI:Create("Label")
+			end
+			label:SetWidth(field.width)
+			label:SetText(item[field.field])
+			label:SetHeight(14)
+
+			-- add label to label group
+			labelGroup:AddChild(label)
+
+			-- Add the new label frame to the pricesLine table for re-use later
+			pricesLine[field.field] = label
+		end
+
+		-- Add label group to standingsScrollFrame
+		frame:AddChild(labelGroup)
+
+		-- Set a quick alias
+		pricesLine["group"] = labelGroup
+
+		-- Add our new pricesLine table to the pricesFrames table for later use
+		GoodEPGP.pricesFrame[index] = pricesLine
+	end
 end
 
 -- Sort the EPGP prices tables
@@ -506,6 +595,8 @@ function GoodEPGP:PricesSort(sortColumn)
 
     -- Custom sort function
     table.sort(GoodEPGPCachedPrices, function(a, b)
+
+		-- If column data is a number then convert raw text to number
         if (numeric) then
             a[sortColumn] = tonumber(a[sortColumn])
             b[sortColumn] = tonumber(b[sortColumn])
@@ -514,15 +605,16 @@ function GoodEPGP:PricesSort(sortColumn)
             local b = b[sortColumn]
         end
 
+		-- Sort by itemName column else sort by number column Ascending or Descending
         if (sortOrder == "ASC") then
 			if (sortColumn == "name") then
-				return b.rname > a.rname
+				return b.itemName > a.itemName
 			else
 				return b[sortColumn] > a[sortColumn]
 			end
         else
 			if (sortColumn == "name") then
-				return a.rname > b.rname
+				return a.itemName > b.itemName
 			else
 	            return a[sortColumn] > b[sortColumn]
 			end
