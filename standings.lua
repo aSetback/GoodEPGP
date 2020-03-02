@@ -148,7 +148,7 @@ function GoodEPGP:ShowStandings()
 
         -- Generate labels for each of our headers
         local headers = {
-            {["label"] = "Player", ["width"] = 200, ["sortColumn"] = "name"},
+            {["label"] = "Player", ["width"] = 196, ["sortColumn"] = "name"},
             {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
             {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
             {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
@@ -323,10 +323,10 @@ function GoodEPGP:AddStandingLine(player, frame, index)
     -- Our list of fields and related widths
     local fields = {
         {["field"] = "name", ["width"] = 196},
-        {["field"] = "class", ["width"] = 146},
-        {["field"] = "ep", ["width"] = 76},
-        {["field"] = "gp", ["width"] = 76},
-        {["field"] = "pr", ["width"] = 76},
+        {["field"] = "class", ["width"] = 150},
+        {["field"] = "ep", ["width"] = 80},
+        {["field"] = "gp", ["width"] = 80},
+        {["field"] = "pr", ["width"] = 80},
     }
 
     -- Get our player's class color
@@ -358,6 +358,13 @@ function GoodEPGP:AddStandingLine(player, frame, index)
         labelGroup = AceGUI:Create("SimpleGroup")
         labelGroup:SetLayout("Flow")
         labelGroup:SetRelativeWidth(1)
+       
+
+        -- add 4px padding to each label group (hacks!)
+        local padding = AceGUI:Create("Label")
+        padding:SetWidth(4)
+        labelGroup:AddChild(padding)
+        
 
         -- Our frames didn't already exist -- create them!
         for key, field in pairs(fields) do
@@ -365,14 +372,11 @@ function GoodEPGP:AddStandingLine(player, frame, index)
             if (field.field == "class" or field.field == "name") then
                 label:SetColor(classColor.r, classColor.g, classColor.b)
             end
+
+            -- Set label attributes
             label:SetWidth(field.width)
 			label:SetText(player[field.field])
 			label:SetHeight(14)
-
-			-- add 4px padding to each label group (hacks!)
-			local padding = AceGUI:Create("Label")
-			padding:SetWidth(4)
-			labelGroup:AddChild(padding)
 
 			-- add label to label group
 			labelGroup:AddChild(label)
@@ -380,6 +384,7 @@ function GoodEPGP:AddStandingLine(player, frame, index)
             -- Add the new label frame to the standingLine table for re-use later
             standingLine[field.field] = label
         end
+
 
 		-- Add label group to standingsScrollFrame
         frame:AddChild(labelGroup)
