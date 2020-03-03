@@ -384,6 +384,7 @@ function GoodEPGP:BuildPrices()
 				local itemType = select(6, GetItemInfo(itemID))
 				local itemSubType = select(7, GetItemInfo(itemID))
 				local itemEquipLoc = select(9, GetItemInfo(itemID))
+				local itemIcon = select(10, GetItemInfo(itemID))
 				local itemSetID = select(16, GetItemInfo(itemID))
 				local price = itemPrice[1]
 				local osprice = tonumber(price) / 4
@@ -393,6 +394,7 @@ function GoodEPGP:BuildPrices()
 					["itemType"] = itemType,
 					["itemSubType"] = itemSubType,
 					["itemEquipLoc"] = itemEquipLoc,
+					["itemIcon"] = itemIcon,
 					["itemSetID"] = itemSetID,
 					["ms"] = price,
 					["os"] = osprice,
@@ -406,6 +408,7 @@ function GoodEPGP:BuildPrices()
 			local itemType = select(6, GetItemInfo(itemID))
 			local itemSubType = select(7, GetItemInfo(itemID))
 			local itemEquipLoc = select(9, GetItemInfo(itemID))
+			local itemIcon = select(10, GetItemInfo(itemID))
 			local itemSetID = select(16, GetItemInfo(itemID))
 			local price = itemPrice[1]
 			local osprice = tonumber(price) / 4
@@ -415,6 +418,7 @@ function GoodEPGP:BuildPrices()
 				["itemType"] = itemType,
 				["itemSubType"] = itemSubType,
 				["itemEquipLoc"] = itemEquipLoc,
+				["itemIcon"] = itemIcon,
 				["itemSetID"] = itemSetID,
 				["ms"] = price,
 				["os"] = osprice,
@@ -422,6 +426,7 @@ function GoodEPGP:BuildPrices()
 			table.insert(GoodEPGPCachedPrices, priceInfo)
 		end
 	end
+	GoodEPGP:ShowPrices()
 end
 
 -- Show Price standings
@@ -505,16 +510,23 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 	if (GoodEPGP.pricesFrame[index]) then
 		local pricesLine = GoodEPGP.pricesFrame[index]
 
-		-- Loop through each of the fields in our line and update the text of the frame and build the tooltips... if applicable
+		-- Loop through each of the fields in our line and update the text of the frame, build the tooltips, and icons... if applicable
 		for key, field in pairs(fields) do
 			local pricesLabel = pricesLine[field.field]
+
+			-- Add tooltips to prices list
 			if (field.field == "itemLink") then
 				pricesLabel:SetCallback("OnClick", function()
 					ItemRefTooltip:SetOwner(GoodEPGP.pricesFrame.frame, "ANCHOR_LEFT", 0, -400)
 					ItemRefTooltip:SetHyperlink(item[field.field])
 					ItemRefTooltip:Show()
 				end)
+
+				-- Add icons to prices list
+				local itemIcon = tonumber(item.itemIcon)
+				pricesLabel:SetImage(itemIcon)
 			end
+
 			pricesLabel:SetText(item[field.field])
 		end
 

@@ -46,7 +46,6 @@ function GoodEPGP:OnInitialize()
     -- Retrieve the most recent standings and import prices if possible
     GoodEPGP:ShowStandings()
 	GoodEPGP:BuildPrices()
-	GoodEPGP:ShowPrices()
 end
 
 -- Alert the player the add-on has started, and register our events.
@@ -78,6 +77,7 @@ function GoodEPGP:OnEnable()
 
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
+	GoodEPGP:ShowPrices()
 end
 
 -- =====================
