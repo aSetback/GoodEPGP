@@ -12,3 +12,4 @@ main.lua
 standings.lua
 prices.lua
 specs.lua
+options.lua

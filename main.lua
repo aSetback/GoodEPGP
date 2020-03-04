@@ -16,12 +16,22 @@ function GoodEPGP:OnInitialize()
         ["type"] = "data source",
         ["text"] = "GoodEPGP",
         ["icon"] = "Interface\\Icons\\inv_hammer_05",
-        ["OnClick"] = function() 
-            if (GoodEPGP.standingsFrame:IsVisible()) then
-                GoodEPGP.standingsFrame:Hide()
+        ["OnTooltipShow"] = function(tooltip) 
+            tooltip:SetText("GoodEPGP v1.2")
+            tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
+            tooltip:AddLine("Right click for menu", 1, 1, 1)
+            tooltip:Show()
+        end,
+        ["OnClick"] = function(_, button)
+            if (button == "LeftButton") then
+                if (GoodEPGP.standingsFrame:IsVisible()) then
+                    GoodEPGP.standingsFrame:Hide()
+                else
+                    GoodEPGP.standingsFrame:Show()
+                    GoodEPGP:RequestStandings()
+                end
             else
-                GoodEPGP.standingsFrame:Show()
-                GoodEPGP:RequestStandings()
+                GoodEPGP:toggleOptionsFrame()
             end
         end
     })
@@ -36,8 +46,7 @@ function GoodEPGP:OnInitialize()
             ["trigger"] = "!gep",
             ["debugEnabled"] = false,
             ["decayPercent"] = 0.1,
-            ["minGP"] = 100,
-            ["displayLoot"] = false
+            ["minGP"] = 100
         }
     end
 
@@ -61,21 +70,23 @@ function GoodEPGP:OnInitialize()
 
     -- Retrieve the most recent standings and import prices if possible
     GoodEPGP:ShowStandings()
-	GoodEPGP:BuildPrices()
-end
-
--- Alert the player the add-on has started, and register our events.
-function GoodEPGP:OnEnable()
+    GoodEPGP:BuildPrices()
 
     -- Our options menu
     GoodEPGP.configOptions = {
         {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
         {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
         {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
-        {["key"] = "displayLoot", ["type"] = "CheckBox", ["label"] = "Display loot in guild chat", ["default"] = "false"},
         {["type"] = "Heading", ["text"] = "Debug"},
         {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
     }
+
+    -- Create our options frame
+    GoodEPGP:createOptionsFrame()
+end
+
+-- Alert the player the add-on has started, and register our events.
+function GoodEPGP:OnEnable()
 
     -- Notify that debug is enabled
     GoodEPGP:Debug('Debug is enabled.')
@@ -896,51 +907,6 @@ function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
     GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
     GoodEPGP:AddGPByName(member, price)
     return price
-end
-
--- Show our options menu
-function GoodEPGP:OpenOptions()
-    local AceGUI = LibStub("AceGUI-3.0")
-    GoodEPGP.optionFrame = AceGUI:Create("Frame")
-    GoodEPGP.optionFrame:SetTitle("GoodEPGP Options")
-    GoodEPGP.optionFrame:SetStatusText("Configure your GoodEPGP")
-    GoodEPGP.optionFrame:SetLayout("List")
-    GoodEPGP.optionFrame:SetCallback("OnClose", function(widget)
-        AceGUI:Release(widget)
-        GoodEPGP.optionFrame = nil
-    end)
-
-    for key, value in pairs(GoodEPGP.configOptions) do
-        local configWidget = AceGUI:Create(value.type)
-        if (value.label ~= nil) then
-            configWidget:SetLabel(value.label)
-        end
-        if (value.description ~= nil) then
-            configWidget:SetDescription(value.description)
-        end
-        if (value.text ~= nil) then
-            configWidget:SetText(value.text)
-        end
-        configWidget:SetFullWidth(true)
-
-        -- Set our initial values by type, and callback
-        if (value.type == "EditBox") then
-            configWidget:SetText(GoodEPGP.config[value.key])
-            configWidget:SetCallback("OnEnterPressed", function(widget)
-                GoodEPGP.config[value.key] = widget:GetText()
-                GoodEPGPConfig = GoodEPGP.config
-            end)
-        end
-        if (value.type == "CheckBox") then
-            configWidget:SetValue(GoodEPGP.config[value.key])
-            configWidget:SetCallback("OnValueChanged", function(widget)
-                GoodEPGP.config[value.key] = widget:GetValue()
-                GoodEPGPConfig = GoodEPGP.config
-            end)
-        end
-
-        GoodEPGP.optionFrame:AddChild(configWidget)
-    end
 end
 
 function GoodEPGP:CreateBidFrame()
