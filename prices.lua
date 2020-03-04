@@ -371,6 +371,16 @@ local prices = {
 }
 GoodEPGP.prices = prices
 
+-- Toggle the display of our prices window
+function GoodEPGP:TogglePrices()
+    if (GoodEPGP.pricesFrame:IsVisible()) then
+        GoodEPGP.pricesFrame:Hide()
+    else
+        GoodEPGP:ShowPrices()
+        GoodEPGP.pricesFrame:Show()
+    end
+end
+
 -- Query server for data missing from the local client ItemCache then build cached price list
 function GoodEPGP:BuildPrices()
 	for itemID, itemPrice in pairs(GoodEPGP.prices) do

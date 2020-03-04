@@ -11,6 +11,7 @@ function SlashCmdList.GEP(msg, editbox)
 end
 
 function GoodEPGP:OnInitialize()
+    -- Generte our minimap icon
     local icon = LibStub("LibDBIcon-1.0")
     GoodEPGP.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("GoodEPGPMinimap", {
         ["type"] = "data source",
@@ -24,14 +25,9 @@ function GoodEPGP:OnInitialize()
         end,
         ["OnClick"] = function(_, button)
             if (button == "LeftButton") then
-                if (GoodEPGP.standingsFrame:IsVisible()) then
-                    GoodEPGP.standingsFrame:Hide()
-                else
-                    GoodEPGP.standingsFrame:Show()
-                    GoodEPGP:RequestStandings()
-                end
+                GoodEPGP:ToggleStandings()
             else
-                GoodEPGP:toggleOptionsFrame()
+                GoodEPGP:ToggleMenuFrame()
             end
         end
     })
@@ -73,16 +69,24 @@ function GoodEPGP:OnInitialize()
     GoodEPGP:BuildPrices()
 
     -- Our options menu
-    GoodEPGP.configOptions = {
-        {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
-        {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
-        {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
-        {["type"] = "Heading", ["text"] = "Debug"},
-        {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
-    }
+    if (CanEditOfficerNote()) then
+        GoodEPGP.configOptions = {
+            {["type"] = "Heading", ["text"] = "Admin Config"},
+            {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
+            {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
+            {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
+            {["type"] = "Heading", ["text"] = "Debug"},
+            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+        }
+    else
+        GoodEPGP.configOptions = {
+            {["type"] = "Heading", ["text"] = "Debug"},
+            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+        }
+    end
 
     -- Create our options frame
-    GoodEPGP:createOptionsFrame()
+    GoodEPGP:CreateMenuFrame()
 end
 
 -- Alert the player the add-on has started, and register our events.
@@ -253,8 +257,8 @@ function GoodEPGP:PrivateCommands(commandMessage)
         end
     end
 
-    if (command == "options") then
-        GoodEPGP:OpenOptions()
+    if (command == "menu") then
+        GoodEPGP:ToggleMenuFrame()
     end
 
     -- Add GP to a player
@@ -290,14 +294,12 @@ function GoodEPGP:PrivateCommands(commandMessage)
     end
 
     -- Show EPGP standings
-    if (command == "show") then
-        GoodEPGP.standingsFrame:Show()
-        GoodEPGP:RequestStandings()
+    if (command == "show" or command == "standings") then
+        GoodEPGP:ToggleStandings()
     end
 
     if (command == "prices") then
-		GoodEPGP:ShowPrices()
-        GoodEPGP.pricesFrame:Show()
+		GoodEPGP:TogglePrices()
     end
 end
 
@@ -325,12 +327,6 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
     -- Item cost lookup
     if (command == "item") then
         GoodEPGP:ShowPrice(argString, type, playerName)
-        return
-    end
-
-    -- Standings lookup by class
-    if (command == "standings") then
-        GoodEPGP:ShowStandingsByClass(arg1, arg2, type, playerName)
         return
     end
 

@@ -56,6 +56,16 @@ local classColors = {
 -- Date format
 local dateFormat = "%m/%d/%y @ %I:%M:%S %p"
 
+-- Toggle standings
+function GoodEPGP:ToggleStandings()
+    if (GoodEPGP.standingsFrame:IsVisible()) then
+        GoodEPGP.standingsFrame:Hide()
+    else
+        GoodEPGP.standingsFrame:Show()
+        GoodEPGP:RequestStandings()
+    end
+end
+
 -- Receive standings
 function GoodEPGP:ReceiveStandings(text)
 
