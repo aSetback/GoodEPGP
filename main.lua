@@ -11,6 +11,22 @@ function SlashCmdList.GEP(msg, editbox)
 end
 
 function GoodEPGP:OnInitialize()
+    local icon = LibStub("LibDBIcon-1.0")
+    GoodEPGP.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("GoodEPGPMinimap", {
+        ["type"] = "data source",
+        ["text"] = "GoodEPGP",
+        ["icon"] = "Interface\\Icons\\inv_hammer_05",
+        ["OnClick"] = function() 
+            if (GoodEPGP.standingsFrame:IsVisible()) then
+                GoodEPGP.standingsFrame:Hide()
+            else
+                GoodEPGP.standingsFrame:Show()
+                GoodEPGP:RequestStandings()
+            end
+        end
+    })
+    icon:Register("GoodEPGP", GoodEPGP.LDB) 
+
     -- Enable add-on messages
     C_ChatInfo.RegisterAddonMessagePrefix("GoodEPGP")
 
