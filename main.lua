@@ -65,25 +65,10 @@ function GoodEPGP:OnInitialize()
     end
 
     -- Retrieve the most recent standings and import prices if possible
-    GoodEPGP:ShowStandings()
-    GoodEPGP:BuildPrices()
+    GoodEPGP:CreateStandingsFrame()
 
-    -- Our options menu
-    if (CanEditOfficerNote()) then
-        GoodEPGP.configOptions = {
-            {["type"] = "Heading", ["text"] = "Admin Config"},
-            {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
-            {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
-            {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
-            {["type"] = "Heading", ["text"] = "Debug"},
-            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
-        }
-    else
-        GoodEPGP.configOptions = {
-            {["type"] = "Heading", ["text"] = "Debug"},
-            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
-        }
-    end
+    -- Build our prices table
+    GoodEPGP:BuildPrices()
 
     -- Create our options frame
     GoodEPGP:CreateMenuFrame()
@@ -108,7 +93,15 @@ function GoodEPGP:OnEnable()
 
     -- Table to track which loot buttons have atttached click events
     GoodEPGP.lootButtons = {}
-	GoodEPGP:ShowPrices()
+
+    -- Load standings table
+    GoodEPGP:LoadStandings()
+
+    -- Show the prices table
+    GoodEPGP:ShowPrices()
+    
+    -- Add the tabs to the menu frame
+    GoodEPGP:CreateMenuTabs()
 end
 
 -- =====================

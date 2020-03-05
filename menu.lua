@@ -12,6 +12,9 @@ function GoodEPGP:CreateMenuFrame()
     GoodEPGP.menuFrame:SetTitle("GoodEPGP Menu")
     GoodEPGP.menuFrame:SetLayout("Fill")
 
+end
+
+function GoodEPGP:CreateMenuTabs()
     GoodEPGP.menuTabs = AceGUI:Create("TabGroup")
     GoodEPGP.menuTabs:SetLayout("List")
     
@@ -29,7 +32,6 @@ function GoodEPGP:CreateMenuFrame()
             {["text"] = "Configuration", ["value"] = "config"},
         }
         GoodEPGP.menuTabs.default = "player"
-
     end
 
     -- Set up our menu tabs    
@@ -43,13 +45,11 @@ function GoodEPGP:CreateMenuFrame()
         elseif (group == "config") then
             GoodEPGP:BuildConfigMenu()
         end
-
     end)
     GoodEPGP.menuFrame:AddChild(GoodEPGP.menuTabs)
 
     -- Hide our frame by default
     GoodEPGP.menuFrame:Hide()
-    
 end
 
 -- Show our options menu
@@ -175,8 +175,27 @@ end
 -- Build configuration menu
 function GoodEPGP:BuildConfigMenu() 
 
+    local configOptions = {}
+
+    -- Our options menu
+    if (CanEditOfficerNote()) then
+        configOptions = {
+            {["type"] = "Heading", ["text"] = "Admin Config"},
+            {["key"] = "trigger", ["type"] = "EditBox", ["label"] = "GoodEPGP Trigger", ["default"] = "!gep"},
+            {["key"] = "decayPercent", ["type"] = "EditBox", ["label"] = "Decay Percentage", ["default"] = ".1"},
+            {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
+            {["type"] = "Heading", ["text"] = "Debug"},
+            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+        }
+    else
+        configOptions = {
+            {["type"] = "Heading", ["text"] = "Debug"},
+            {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+        }
+    end
+
     -- Loop through our config options we'd like to display
-    for key, value in pairs(GoodEPGP.configOptions) do
+    for key, value in pairs(configOptions) do
         local configWidget = AceGUI:Create(value.type)
         if (value.label ~= nil) then
             configWidget:SetLabel(value.label)

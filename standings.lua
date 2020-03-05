@@ -108,9 +108,8 @@ function GoodEPGP:StandingsUpdateLastUpdated()
     GoodEPGP.standingsFrame:SetStatusText("Last Updated: " .. date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
 end
 
--- Show EPGP standings
-function GoodEPGP:ShowStandings()
-
+-- Create the EPGP standings frame
+function GoodEPGP:CreateStandingsFrame()
     -- Create the standingsFrame if it doesn't exist.
     if (GoodEPGP.standingsFrame == nil) then
 
@@ -195,7 +194,10 @@ function GoodEPGP:ShowStandings()
 		_G["GoodEPGP_Standings"] = GoodEPGP.standingsFrame
 		table.insert(UISpecialFrames, "GoodEPGP_Standings")
     end
+end
 
+-- Load standings from our cache
+function GoodEPGP:LoadStandings()
     -- Go through our standings and display them
     for key, player in pairs(GoodEPGPCachedStandings) do
         GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
@@ -267,7 +269,7 @@ function GoodEPGP:StandingsSort(sortColumn)
         end
     end)
 
-    GoodEPGP:ShowStandings()
+    GoodEPGP:LoadStandings()
 
 	-- Class filters
     local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
