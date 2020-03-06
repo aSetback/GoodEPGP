@@ -1,7 +1,7 @@
 local AceGUI = LibStub("AceGUI-3.0")
 
 -- Attempt to create our options frame
-function GoodEPGP:CreateMenuFrame() 
+function GoodEPGP:CreateMenuFrame()
     -- Don't create it if it already exists
     if (GoodEPGP.menuFrame ~= nil) then
         return
@@ -17,7 +17,7 @@ end
 function GoodEPGP:CreateMenuTabs()
     GoodEPGP.menuTabs = AceGUI:Create("TabGroup")
     GoodEPGP.menuTabs:SetLayout("List")
-    
+
     -- Only offer the admin tab to players who can use it.
     if (CanEditOfficerNote()) then
         GoodEPGP.menuTabs.tabData = {
@@ -34,9 +34,9 @@ function GoodEPGP:CreateMenuTabs()
         GoodEPGP.menuTabs.default = "player"
     end
 
-    -- Set up our menu tabs    
+    -- Set up our menu tabs
     GoodEPGP.menuTabs:SetTabs(GoodEPGP.menuTabs.tabData)
-    GoodEPGP.menuTabs:SetCallback("OnGroupSelected", function(container, event, group) 
+    GoodEPGP.menuTabs:SetCallback("OnGroupSelected", function(container, event, group)
         container:ReleaseChildren()
         if (group == "player") then
             GoodEPGP:BuildPlayerMenu()
@@ -74,18 +74,18 @@ function GoodEPGP:confirmDialog(title, text, validateFunction, acceptFunction)
     container:SetWidth(300)
     container:SetHeight(100)
     container:SetLayout("Fill")
-    
+
     local input = AceGUI:Create("EditBox")
     container:AddChild(input)
     input:SetLabel(text)
     input:SetMaxLetters(4)
-    input:SetCallback("OnTextChanged", function(widget) 
+    input:SetCallback("OnTextChanged", function(widget)
         local enteredText = widget:GetText()
         if (GoodEPGP[validateFunction](GoodEPGP, enteredText)) then
             widget:DisableButton(false)
         else
             widget:DisableButton(true)
-        end 
+        end
     end)
     input:SetCallback("OnEnterPressed", function(widget)
         local enteredText = widget:GetText()
@@ -168,12 +168,10 @@ function GoodEPGP:BuildAdminMenu()
 
         GoodEPGP.menuTabs:AddChild(adminButton)
     end
-
-
 end
 
 -- Build configuration menu
-function GoodEPGP:BuildConfigMenu() 
+function GoodEPGP:BuildConfigMenu()
 
     local configOptions = {}
 
@@ -186,11 +184,15 @@ function GoodEPGP:BuildConfigMenu()
             {["key"] = "minGP", ["type"] = "EditBox", ["label"] = "Minimum GP", ["default"] = "100"},
             {["type"] = "Heading", ["text"] = "Debug"},
             {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+            {["type"] = "Heading", ["text"] = "Minimap Icon"},
+            {["key"] = "show", ["type"] = "CheckBox", ["label"] = "Show Minimap Icon", ["default"] = "true"},
         }
     else
         configOptions = {
             {["type"] = "Heading", ["text"] = "Debug"},
             {["key"] = "debugEnabled", ["type"] = "CheckBox", ["label"] = "Debug Mode", ["default"] = "true"},
+            {["type"] = "Heading", ["text"] = "Minimap Icon"},
+            {["key"] = "show", ["type"] = "CheckBox", ["label"] = "Show Minimap Icon", ["default"] = "true"},
         }
     end
 
@@ -208,7 +210,7 @@ function GoodEPGP:BuildConfigMenu()
         end
         configWidget:SetFullWidth(true)
 
-        -- Set our initial values by type, and callback
+        -- Set our initial values by type, and callback (global)
         if (value.type == "EditBox") then
             configWidget:SetText(GoodEPGP.config[value.key])
             configWidget:SetCallback("OnEnterPressed", function(widget)
@@ -216,13 +218,22 @@ function GoodEPGP:BuildConfigMenu()
                 GoodEPGPConfig = GoodEPGP.config
             end)
         end
-        if (value.type == "CheckBox") then
+        if (value.key ~= "show" and value.type == "CheckBox") then
             configWidget:SetValue(GoodEPGP.config[value.key])
             configWidget:SetCallback("OnValueChanged", function(widget)
                 GoodEPGP.config[value.key] = widget:GetValue()
                 GoodEPGPConfig = GoodEPGP.config
             end)
         end
+
+		-- Set minimap icon visibility (per character)
+		if (value.key == "show" and value.type == "CheckBox") then
+            configWidget:SetValue(GoodEPGPMiniMapPos[value.key])
+            configWidget:SetCallback("OnValueChanged", function(widget)
+                GoodEPGPMiniMapPos[value.key] = widget:GetValue()
+				GoodEPGP:MinimapIconToggle()
+            end)
+		end
 
         -- Add the widget to our otpions frame
         GoodEPGP.menuTabs:AddChild(configWidget)

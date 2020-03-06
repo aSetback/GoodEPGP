@@ -11,13 +11,35 @@ function SlashCmdList.GEP(msg, editbox)
 end
 
 function GoodEPGP:OnInitialize()
-    -- Generte our minimap icon
-    local icon = LibStub("LibDBIcon-1.0")
+
+	-- Enable add-on messages
+    C_ChatInfo.RegisterAddonMessagePrefix("GoodEPGP")
+
+    -- Default settings
+    if (GoodEPGPConfig == nil) then
+        GoodEPGPConfig = {
+            ["trigger"] = "!gep",
+            ["debugEnabled"] = false,
+            ["decayPercent"] = 0.1,
+            ["minGP"] = 100
+        }
+    end
+
+	-- Default minimap icon position
+    if (GoodEPGPMiniMapPos == nil) then
+        GoodEPGPMiniMapPos = {
+			["minimapPos"] = 206,
+			["show"] = true,
+        }
+    end
+
+	-- Generte our minimap icon
+    GoodEPGP.MinimapIcon = LibStub("LibDBIcon-1.0")
     GoodEPGP.LDB = LibStub("LibDataBroker-1.1"):NewDataObject("GoodEPGPMinimap", {
         ["type"] = "data source",
         ["text"] = "GoodEPGP",
         ["icon"] = "Interface\\Icons\\inv_hammer_05",
-        ["OnTooltipShow"] = function(tooltip) 
+        ["OnTooltipShow"] = function(tooltip)
             tooltip:SetText("GoodEPGP v1.2")
             tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
             tooltip:AddLine("Right click for menu", 1, 1, 1)
@@ -31,20 +53,7 @@ function GoodEPGP:OnInitialize()
             end
         end
     })
-    icon:Register("GoodEPGP", GoodEPGP.LDB) 
-
-    -- Enable add-on messages
-    C_ChatInfo.RegisterAddonMessagePrefix("GoodEPGP")
-
-    -- Default settings
-    if (GoodEPGPConfig == nil) then
-        GoodEPGPConfig = {
-            ["trigger"] = "!gep",
-            ["debugEnabled"] = false,
-            ["decayPercent"] = 0.1,
-            ["minGP"] = 100
-        }
-    end
+    GoodEPGP.MinimapIcon:Register("GoodEPGPMinimap", GoodEPGP.LDB, GoodEPGPMiniMapPos)
 
     -- Use our settings
     GoodEPGP.config = GoodEPGPConfig
@@ -99,7 +108,7 @@ function GoodEPGP:OnEnable()
 
     -- Show the prices table
     GoodEPGP:ShowPrices()
-    
+
     -- Add the tabs to the menu frame
     GoodEPGP:CreateMenuTabs()
 end
@@ -1187,4 +1196,12 @@ function GoodEPGP:Debug(message)
     if (GoodEPGP.config.debugEnabled == true) then
         self:Print("DEBUG: " .. message)
     end
+end
+
+function GoodEPGP:MinimapIconToggle()
+	if (GoodEPGPMiniMapPos.show == false) then
+		GoodEPGP.MinimapIcon:Hide("GoodEPGPMinimap")
+	else
+		GoodEPGP.MinimapIcon:Show("GoodEPGPMinimap")
+	end
 end

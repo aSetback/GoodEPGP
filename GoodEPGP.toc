@@ -3,6 +3,7 @@
 ## Author: Taunt <Good>
 ## Version: 1.1
 ## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot, GoodEPGPCachedStandings
+## SavedVariablesPerCharacter: GoodEPGPMiniMapPos
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 
