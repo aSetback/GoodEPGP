@@ -42,12 +42,17 @@ function GoodEPGP:OnInitialize()
         ["OnTooltipShow"] = function(tooltip)
             tooltip:SetText("GoodEPGP v1.2")
             tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
+			tooltip:AddLine("Shift+Left click to toggle prices", 1, 1, 1)
             tooltip:AddLine("Right click for menu", 1, 1, 1)
             tooltip:Show()
         end,
         ["OnClick"] = function(_, button)
             if (button == "LeftButton") then
-                GoodEPGP:ToggleStandings()
+				if IsShiftKeyDown() then
+					GoodEPGP:TogglePrices()
+				else
+					GoodEPGP:ToggleStandings()
+				end
             else
                 GoodEPGP:ToggleMenuFrame()
             end

@@ -12,6 +12,10 @@ function GoodEPGP:CreateMenuFrame()
     GoodEPGP.menuFrame:SetTitle("GoodEPGP Menu")
     GoodEPGP.menuFrame:SetLayout("Fill")
 
+	-- Allows closing hitting ESC
+	_G["GoodEPGP_Menu"] = GoodEPGP.menuFrame
+	table.insert(UISpecialFrames, "GoodEPGP_Menu")
+
 end
 
 function GoodEPGP:CreateMenuTabs()
@@ -57,6 +61,16 @@ function GoodEPGP:ToggleMenuFrame()
     if (GoodEPGP.menuFrame:IsVisible()) then
         GoodEPGP.menuFrame:Hide()
     else
+		if (GoodEPGP.pricesFrame:IsVisible()) then
+			GoodEPGP:TogglePrices()
+			GoodEPGP.menuFrame:Show()
+			GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
+		end
+		if (GoodEPGP.standingsFrame:IsVisible()) then
+			GoodEPGP:ToggleStandings()
+			GoodEPGP.menuFrame:Show()
+			GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
+		end
         GoodEPGP.menuFrame:Show()
         GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
     end

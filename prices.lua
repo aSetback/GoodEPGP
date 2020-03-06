@@ -376,6 +376,16 @@ function GoodEPGP:TogglePrices()
     if (GoodEPGP.pricesFrame:IsVisible()) then
         GoodEPGP.pricesFrame:Hide()
     else
+		if (GoodEPGP.menuFrame:IsVisible()) then
+			GoodEPGP.menuFrame:Hide()
+			GoodEPGP:ShowPrices()
+			GoodEPGP.pricesFrame:Show()
+		end
+		if (GoodEPGP.standingsFrame:IsVisible()) then
+			GoodEPGP:ToggleStandings()
+			GoodEPGP:ShowPrices()
+			GoodEPGP.pricesFrame:Show()
+		end
         GoodEPGP:ShowPrices()
         GoodEPGP.pricesFrame:Show()
     end
