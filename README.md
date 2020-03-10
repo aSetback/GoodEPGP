@@ -1,5 +1,7 @@
 **GoodEPGP**
 
+Now hosted on Sourceforge!
+
 Text Commands:
 
 /gep ep raid 500  -- Award the raid 500 EP
