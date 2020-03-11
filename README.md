@@ -1,7 +1,5 @@
 **GoodEPGP**
 
-Now hosted on Sourceforge!
-
 Text Commands:
 
 /gep ep raid 500  -- Award the raid 500 EP
@@ -37,3 +35,5 @@ Players can then message you + or - to bid on an item, and the bids will show up
 You can press the 'Assign' button to assign the loot.
 
 Hitting 'Yes' on the confirmation box will award the loot, and will assign the GP cost to the player.
+
+** Updated for Curseforge
