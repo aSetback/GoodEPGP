@@ -36,4 +36,4 @@ You can press the 'Assign' button to assign the loot.
 
 Hitting 'Yes' on the confirmation box will award the loot, and will assign the GP cost to the player.
 
-** Updated for Curseforge
+** Updated for Curseforge -- release version
