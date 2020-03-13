@@ -63,13 +63,9 @@ function GoodEPGP:ToggleMenuFrame()
     else
 		if (GoodEPGP.pricesFrame:IsVisible()) then
 			GoodEPGP:TogglePrices()
-			GoodEPGP.menuFrame:Show()
-			GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
 		end
 		if (GoodEPGP.standingsFrame:IsVisible()) then
 			GoodEPGP:ToggleStandings()
-			GoodEPGP.menuFrame:Show()
-			GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
 		end
         GoodEPGP.menuFrame:Show()
         GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)

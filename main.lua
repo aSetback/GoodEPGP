@@ -78,7 +78,7 @@ function GoodEPGP:OnInitialize()
         GoodEPGPConfig.standingsLastUpdated = 0
     end
 
-    -- Retrieve the most recent standings and import prices if possible
+    -- Build standings frames
     GoodEPGP:CreateStandingsFrame()
 
     -- Build our prices table
@@ -109,10 +109,10 @@ function GoodEPGP:OnEnable()
     GoodEPGP.lootButtons = {}
 
     -- Load standings table
-    GoodEPGP:LoadStandings()
+    GoodEPGP:LoadAllStandings()
 
-    -- Show the prices table
-    GoodEPGP:ShowPrices()
+    -- Load the prices table
+    GoodEPGP:LoadAllPrices()
 
     -- Add the tabs to the menu frame
     GoodEPGP:CreateMenuTabs()
@@ -134,8 +134,8 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
         if (text == "standingsAvailable") then
             if (GoodEPGP.requestStandings) then
                 GoodEPGP.requestStandings = false
+				GoodEPGPCachedStandings = {}
                 GoodEPGP:Debug("Requesting standings from " .. player)
-                GoodEPGPCachedStandings = {}
                 GoodEPGP:AddonMessage("getStandings", player)
             end
         end
@@ -145,8 +145,16 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
         end
 
         if (text == "standingsBroadcastComplete") then
+			GoodEPGP:Debug("Standings broadcast complete...")
             GoodEPGP:StandingsUpdateLastUpdated()
-            GoodEPGP:StandingsSort("name")
+
+			-- Wipe the standingsLinesFrames and release all widgets (prevents memory bloat)
+			GoodEPGP.standingsScrollFrame:ReleaseChildren()
+			GoodEPGP.standingsLinesFrames = {}
+
+			-- Over-ride previous sortOrder and force ASC
+			GoodEPGP.standingsFrame.sortOrder = "DESC"
+			GoodEPGP:StandingsSort("name")
         end
 
         if (string.sub(text, 1, 2) == "S:") then
@@ -739,10 +747,10 @@ function GoodEPGP:GetGuildMemberByName(name)
         GoodEPGP:Debug("Empty name for guild member lookup.")
     else
         for i = 1, GetNumGuildMembers() do
-            local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
+            local playerName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
             -- Strip the server name
-            guildName = select(1, strsplit("-", guildName))
-            if (guildName:lower() == name:lower()) then
+            playerName = select(1, strsplit("-", playerName))
+            if (playerName:lower() == name:lower()) then
                 local ep = select(1, strsplit(",", officerNote))
                 local gp = select(2, strsplit(",", officerNote))
                 if (ep == nil or gp == nil) then
@@ -751,7 +759,7 @@ function GoodEPGP:GetGuildMemberByName(name)
                 end
                 local pr = GoodEPGP:Round(tonumber(ep) / tonumber(gp), 2)
                 playerInfo = {
-                    ["name"] = GoodEPGP:UCFirst(guildName),
+                    ["name"] = GoodEPGP:UCFirst(playerName),
                     ["spec"] = GoodEPGP:UCFirst(note),
                     ["class"] = GoodEPGP:UCFirst(class),
                     ["ep"] = ep,
@@ -1095,8 +1103,10 @@ end
 
 -- Capitalize the first letter of a word, lowercase the rest.
 function GoodEPGP:UCFirst(word)
-    word = word:sub(1,1):upper() .. word:sub(2):lower()
-    return word
+	if word then
+	    word = word:sub(1,1):upper() .. word:sub(2):lower()
+		return word
+	end
 end
 
 -- Send an add-on message
