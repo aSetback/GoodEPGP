@@ -86,6 +86,7 @@ function GoodEPGP:OnInitialize()
 
     -- Create our options frame
     GoodEPGP:CreateMenuFrame()
+
 end
 
 -- Alert the player the add-on has started, and register our events.
@@ -1207,16 +1208,77 @@ function GoodEPGP:ConfirmAction(confirmString, acceptCallback, cancelCalback)
     StaticPopup_Show("CONFIRM_ACTION")
 end
 
+-- Debug!
 function GoodEPGP:Debug(message)
     if (GoodEPGP.config.debugEnabled == true) then
         self:Print("DEBUG: " .. message)
     end
 end
 
+-- Minimap Icon
 function GoodEPGP:MinimapIconToggle()
 	if (GoodEPGPMiniMapPos.show == false) then
 		GoodEPGP.MinimapIcon:Hide("GoodEPGPMinimap")
 	else
 		GoodEPGP.MinimapIcon:Show("GoodEPGPMinimap")
+	end
+end
+
+-- Get Player GUID by Name
+function GoodEPGP:PlayerGUID(playerName)
+	player = select(1, strsplit("-", playerName))
+    for i = 1, MAX_RAID_MEMBERS do
+		local raidMember = select(1, GetRaidRosterInfo(i))
+		if raidMember then
+			if raidMember == player then
+				local unitID = "raid"..i
+				local playerGUID = UnitGUID(unitID)
+				return playerGUID
+			end
+		end
+    end
+end
+
+-- Main/Off Spec Chat Filter
+local function ChatFilterBids(chatFrame, event, msg, masterLooter, ...)
+	if msg then
+		if msg:find("Whisper me %+ for main spec%, %- for off spec to bid on ") then
+			--local masterLooter = select(1, strsplit("-", sender))
+			local MAIN = GoodEPGP:BidLink("228B22", masterLooter, "ms", "MAIN")
+			local OFF = GoodEPGP:BidLink("8b0000", masterLooter, "os", "OFF")
+			return false, string.gsub(msg, "Whisper me %+ for main spec%, %- for off spec to bid on ", "Click "..MAIN.." to bid main spec or, click "..OFF.." to bid off spec on "), masterLooter, ...
+		end
+	end
+end
+
+ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID_WARNING", ChatFilterBids)
+
+-- HyperLink Bid Builder
+function GoodEPGP:BidLink(linkColor, masterLooter, bidType, linkLabel)
+	local mlGUID = GoodEPGP:PlayerGUID(masterLooter)
+	return "|Hgoodbid:2020:"..mlGUID..":"..bidType.."|h|cff"..linkColor.."["..linkLabel.."]|r|h"
+end
+
+-- Secure Hookfunction
+local old = ItemRefTooltip.SetHyperlink
+function ItemRefTooltip:SetHyperlink(link, ...)
+	if link:find("goodbid:") then
+		GoodEPGP:Debug("ItemRefTooltip - link: "..link)
+		local mlGUID = select(3, strsplit(":", link))
+		local bidType = select(4, strsplit(":", link))
+		if link and mlGUID and bidType then
+			GoodEPGP:Debug("ItemRefTooltip - link: "..link.." | mlGUID: "..mlGUID.." | bidType: "..bidType)
+		end
+		local masterlooter = select(6, GetPlayerInfoByGUID(mlGUID))
+		if masterlooter and bidType then
+			if bidType == "ms" then
+				SendChatMessage("+", "WHISPER", nil, masterlooter)
+			end
+			if bidType == "os" then
+				SendChatMessage("-", "WHISPER", nil, masterlooter)
+			end
+		end
+	else
+		return old(self, link, ...)
 	end
 end
