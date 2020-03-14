@@ -27,30 +27,27 @@ end
 function GoodEPGP:LootClick(button, data, key)
     -- If it's just currency, or the slot is empty, just return.
     local item = GetLootSlotLink(key)
+    
+    -- Just in case ..
     if (item == nil) then
         return
     end
 
     -- Set our object vars to remember what's being currently looted.
-    local itemName = select(1, GetItemInfo(item))
-    local itemLink = select(2, GetItemInfo(item))
-    local itemQuality = select(3, GetItemInfo(item))
+    local itemName, itemLink, itemQuality = GetItemInfo(item)
     local itemID = select(2, strsplit(":", itemLink, 3))
     GoodEPGP.activeItemIndex = key
     GoodEPGP.activeItem = item
 
-    -- You can only ML stuff that's uncommon +
+    -- You can only ML stuff that's uncommon or better
     if (itemQuality <= 1) then
         return
     end
 
     -- If the alt key is being run down, run a EPGP  bid
-    if (IsAltKeyDown()) then
-        -- Alt + Left Click
-        if (data == "LeftButton") then
-            GoodEPGP:StartBid(itemID)
-            return
-        end
+    if (IsAltKeyDown() and (data == "LeftButton") then
+        GoodEPGP:StartBid(itemID)
+        return
     end
 end
 
