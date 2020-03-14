@@ -231,22 +231,9 @@ function GoodEPGP:CHAT_MSG_WHISPER(type, whisperText, playerName)
     end
 
     -- Prevent further processing if it's not a bid
-    if (whisperText ~= "+" and whisperText ~= "-") then
-        return
+    if ((whisperText == "+" or whisperText == "-") and GoodEPGP.activeBid) then
+        GoodEPGP:ReceiveBid(whisperText, player)
     end
-
-    -- Handle bidding
-    if (GoodEPGP.activeBid ~= true) then
-        return
-    end
-
-    local memberInfo = GoodEPGP:GetGuildMemberByName(player)
-    -- Set our bid type
-    memberInfo.type = whisperText
-    -- Insert into bids table
-    table.insert(GoodEPGP.bids, memberInfo)
-
-    GoodEPGP:UpdateBidFrame()
 end
 
 -- =====================

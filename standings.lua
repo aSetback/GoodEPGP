@@ -218,7 +218,6 @@ end
 
 -- Load standings from our cache
 function GoodEPGP:LoadAllStandings()
-
 	-- Clear all filters
 	GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
 	GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")

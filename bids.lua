@@ -1,5 +1,28 @@
 local AceGUI = LibStub("AceGUI-3.0")
 
+-- Receive a bid from a player
+function GoodEPGP:ReceiveBid(type, player)
+    -- Retrieve the player's information
+    local playerInfo = GoodEPGP:GetGuildMemberByName(player)
+    
+    -- Set our bid type
+    playerInfo.type = type
+    
+    -- Delete any existing bids from this player
+    for key, bidInfo in pairs(GoodEPGP.bids) do
+        if (bidInfo.name == player) then
+            table.remove(GoodEPGP.bids, key)
+        end
+    end
+
+    -- Insert into bids table
+    table.insert(GoodEPGP.bids, playerInfo)
+
+    -- Show and/or update our bid frame
+    GoodEPGP:UpdateBidFrame()
+end
+
+
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
     -- If it's just currency, or the slot is empty, just return.
@@ -29,20 +52,6 @@ function GoodEPGP:LootClick(button, data, key)
             return
         end
     end
-
-    -- Don't allow random roll / loot to self if quality >= 5 (Epic)
-    if (itemQuality >= 5) then
-        return
-    end
-
-    -- Check if ctrl key is being held down
-    -- if (IsControlKeyDown()) then
-    --     -- Ctrl + Left Click
-    --     if (data == "LeftButton") then
-    --         GoodEPGP:LootToSelf()
-    --         return
-    --     end
-    -- end
 end
 
 -- Start a bid for the current item
@@ -70,6 +79,7 @@ local function ChatFilterBids(chatFrame, event, msg, masterLooter, ...)
 	end
 end
 
+-- Add a message filter to 
 ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID_WARNING", ChatFilterBids)
 
 -- HyperLink Bid Builder
@@ -81,15 +91,13 @@ end
 
 -- Confirm the item should be looted to player
 function GoodEPGP:ConfirmAwardItem(playerName, type)
-    -- Hide our bid frame when awarding
-    GoodEPGP:HideBidFrame()
-
     local confirmString = "Are you sure you want to loot this item to " .. playerName .. " as " .. type .. "?"
     GoodEPGP:ConfirmAction(confirmString, function()
         GoodEPGP:AwardItem(playerName, type)
+        GoodEPGP:HideBidFrame()
     end,
     function()
-        GoodEPGP:UpdateBidFrame()
+        -- There should be nothing to do
     end)
 end
 
@@ -130,11 +138,10 @@ end
 
 function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidFrame = AceGUI:Create("Frame")
-    GoodEPGP.bidFrame:SetTitle("GoodEPGP")
+    GoodEPGP.bidFrame:SetTitle("GoodEPGP - Bids")
     GoodEPGP.bidFrame:SetStatusText("Current bids for " .. GoodEPGP.activeItem)
     GoodEPGP.bidFrame:SetCallback("OnClose", function(widget)
-        AceGUI:Release(widget)
-        GoodEPGP.bidFrame = nil
+        GoodEPGP:HideBidFrame()
     end)
     GoodEPGP.bidFrame:SetLayout("Flow")
 end
@@ -149,6 +156,15 @@ end
 
 function GoodEPGP:UpdateBidFrame()
 
+    local headers = {
+        {200, "Player"},
+        {150, "Level/Class"},
+        {50, "EP"},
+        {50, "GP"},
+        {50, "Prio"},
+        {150, ""}
+    }
+
     -- Sort by prio
     table.sort(GoodEPGP.bids, function(a, b)
         return a.pr > b.pr
@@ -160,11 +176,24 @@ function GoodEPGP:UpdateBidFrame()
     end
     GoodEPGP:CreateBidFrame()
 
+    -- If there's no bids, show a message.
+    if (#GoodEPGP.bids == 0) then
+        -- Add Spacer
+        local noBidsLabel = AceGUI:Create("Label")
+        noBidsLabel:SetText("No bids have been received yet.")
+        noBidsLabel:SetJustifyH("Center")
+        noBidsLabel:SetFont("Fonts\\FRIZQT__.TTF", 16)        
+        noBidsLabel:SetFullWidth(true)
+        GoodEPGP.bidFrame:AddChild(noBidsLabel)
+
+        return
+    end
+
     -- Add title
     GoodEPGP:AddBidFrameTitle("Main Spec")
 
     -- Add Header
-    GoodEPGP:AddBidFrameHeader()
+    GoodEPGP:AddBidFrameHeader(headers)
 
     -- Main Spec
     for i=1, #GoodEPGP.bids do
@@ -174,14 +203,17 @@ function GoodEPGP:UpdateBidFrame()
         end
     end
 
-    -- Add spacer
-    GoodEPGP:AddBidFrameTitle(" ")
+    -- Add Spacer
+    local spacerLabel = AceGUI:Create("Label")
+    spacerLabel:SetText(" ")
+    spacerLabel:SetFullWidth(true)
+    GoodEPGP.bidFrame:AddChild(spacerLabel)
 
     -- Add title
     GoodEPGP:AddBidFrameTitle("Off Spec")
 
     -- Add Header
-    GoodEPGP:AddBidFrameHeader()
+    GoodEPGP:AddBidFrameHeader(headers)
 
     -- Off Spec
     for i=1, #GoodEPGP.bids do
@@ -193,26 +225,13 @@ function GoodEPGP:UpdateBidFrame()
 end
 
 function GoodEPGP:AddBidFrameTitle(title)
-    local titleLabel = AceGUI:Create("Label")
+    local titleLabel = AceGUI:Create("Heading")
     titleLabel:SetText(title)
     titleLabel:SetFullWidth(true)
-    titleLabel:SetJustifyH("Left")
-    titleLabel:SetFont("Fonts\\FRIZQT__.TTF", 14)
     GoodEPGP.bidFrame:AddChild(titleLabel)
 end
 
-function GoodEPGP:AddBidFrameHeader()
-
-    -- Our table of header data (width, label)
-    local headers = {
-        {200, "Player"},
-        {150, "Level/Class"},
-        {50, "EP"},
-        {50, "GP"},
-        {50, "Prio"},
-        {150, ""}
-    }
-
+function GoodEPGP:AddBidFrameHeader(headers)
     -- Generate header labels
     for key, value in pairs(headers) do
         local headerLabel = AceGUI:Create("Label")
@@ -224,6 +243,7 @@ end
 
 
 function GoodEPGP:AddBidLine(bid, bidType)
+    
 
     local assignButton = AceGUI:Create("Button")
     assignButton:SetText("Assign")
@@ -239,9 +259,13 @@ function GoodEPGP:AddBidLine(bid, bidType)
     local playerLabel = AceGUI:Create("Label")
     playerLabel:SetText(bid.name)
     playerLabel:SetWidth(200)
-
     local classLabel = AceGUI:Create("Label")
-    classLabel:SetText(bid.spec .. " " .. bid.class)
+
+    if (bid.spec ~= "") then
+        classLabel:SetText(bid.spec .. " " .. bid.class)
+    else
+        classLabel:SetText(bid.class)
+    end
     classLabel:SetWidth(150)
 
     local epLabel = AceGUI:Create("Label")
