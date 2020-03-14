@@ -1,18 +1,23 @@
+-- =====================
+-- Variables
+-- =====================
 local AceGUI = LibStub("AceGUI-3.0")
+
+-- =====================
+-- Functions
+-- =====================
 
 -- Receive a bid from a player
 function GoodEPGP:ReceiveBid(type, player)
     -- Retrieve the player's information
     local playerInfo = GoodEPGP:GetGuildMemberByName(player)
-    
+
     -- Set our bid type
     playerInfo.type = type
-    
+
     -- Delete any existing bids from this player
     for key, bidInfo in pairs(GoodEPGP.bids) do
-        if (bidInfo.name == player) then
-            table.remove(GoodEPGP.bids, key)
-        end
+        if (bidInfo.name == player) then table.remove(GoodEPGP.bids, key) end
     end
 
     -- Insert into bids table
@@ -22,16 +27,13 @@ function GoodEPGP:ReceiveBid(type, player)
     GoodEPGP:UpdateBidFrame()
 end
 
-
 -- Event function that fires when a loot button is clicked within the loot box
 function GoodEPGP:LootClick(button, data, key)
     -- If it's just currency, or the slot is empty, just return.
     local item = GetLootSlotLink(key)
-    
+
     -- Just in case ..
-    if (item == nil) then
-        return
-    end
+    if (item == nil) then return end
 
     -- Set our object vars to remember what's being currently looted.
     local itemName, itemLink, itemQuality = GetItemInfo(item)
@@ -40,12 +42,10 @@ function GoodEPGP:LootClick(button, data, key)
     GoodEPGP.activeItem = item
 
     -- You can only ML stuff that's uncommon or better
-    if (itemQuality <= 1) then
-        return
-    end
+    if (itemQuality <= 1) then return end
 
     -- If the alt key is being run down, run a EPGP  bid
-    if (IsAltKeyDown() and (data == "LeftButton") then
+    if (IsAltKeyDown() and data == "LeftButton") then
         GoodEPGP:StartBid(itemID)
         return
     end
@@ -60,40 +60,45 @@ function GoodEPGP:StartBid(itemID)
     GoodEPGP.activeBid = true
     GoodEPGP.bids = {}
 
-    GoodEPGP:WidestAudience("Whisper me + for main spec, - for off spec to bid on " .. GoodEPGP.activeItem .. ". (MS Cost: " .. price .. " GP, OS Cost: " .. offspecPrice .. " GP)")
+    GoodEPGP:WidestAudience(
+        "Whisper me + for main spec, - for off spec to bid on " ..
+            GoodEPGP.activeItem .. ". (MS Cost: " .. price .. " GP, OS Cost: " ..
+            offspecPrice .. " GP)")
     GoodEPGP:UpdateBidFrame()
 end
 
 -- Main/Off Spec Chat Filter
 local function ChatFilterBids(chatFrame, event, msg, masterLooter, ...)
-	if msg then
-		if msg:find("Whisper me %+ for main spec%, %- for off spec to bid on ") then
-			--local masterLooter = select(1, strsplit("-", sender))
-			local MAIN = GoodEPGP:BidLink("228B22", masterLooter, "ms", "MAIN")
-			local OFF = GoodEPGP:BidLink("8b0000", masterLooter, "os", "OFF")
-			return false, string.gsub(msg, "Whisper me %+ for main spec%, %- for off spec to bid on ", "Click "..MAIN.." to bid main spec or, click "..OFF.." to bid off spec on "), masterLooter, ...
-		end
-	end
+    if msg then
+        if msg:find("Whisper me %+ for main spec%, %- for off spec to bid on ") then
+            -- local masterLooter = select(1, strsplit("-", sender))
+            local MAIN = GoodEPGP:BidLink("228B22", masterLooter, "ms", "MAIN")
+            local OFF = GoodEPGP:BidLink("8b0000", masterLooter, "os", "OFF")
+            return false,
+                   string.gsub(msg,
+                               "Whisper me %+ for main spec%, %- for off spec to bid on ",
+                               "Click " .. MAIN ..
+                                   " to bid main spec or, click " .. OFF ..
+                                   " to bid off spec on "), masterLooter, ...
+        end
+    end
 end
-
--- Add a message filter to 
-ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID_WARNING", ChatFilterBids)
 
 -- HyperLink Bid Builder
 function GoodEPGP:BidLink(linkColor, masterLooter, bidType, linkLabel)
-	local mlGUID = GoodEPGP:PlayerGUID(masterLooter)
-	return "|Hgoodbid:2020:"..mlGUID..":"..bidType.."|h|cff"..linkColor.."["..linkLabel.."]|r|h"
+    local mlGUID = GoodEPGP:PlayerGUID(masterLooter)
+    return "|Hgoodbid:2020:" .. mlGUID .. ":" .. bidType .. "|h|cff" ..
+               linkColor .. "[" .. linkLabel .. "]|r|h"
 end
-
 
 -- Confirm the item should be looted to player
 function GoodEPGP:ConfirmAwardItem(playerName, type)
-    local confirmString = "Are you sure you want to loot this item to " .. playerName .. " as " .. type .. "?"
+    local confirmString = "Are you sure you want to loot this item to " ..
+                              playerName .. " as " .. type .. "?"
     GoodEPGP:ConfirmAction(confirmString, function()
         GoodEPGP:AwardItem(playerName, type)
         GoodEPGP:HideBidFrame()
-    end,
-    function()
+    end, function()
         -- There should be nothing to do
     end)
 end
@@ -109,37 +114,23 @@ function GoodEPGP:AwardItem(playerName, priceType)
     end
 
     -- Award main spec or offspec GP
-    local chargedPrice = GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem, priceType)
+    local chargedPrice = GoodEPGP:ChargeForItem(playerName, GoodEPGP.activeItem,
+                                                priceType)
 
     -- Notify other players using add-on
     GoodEPGP:BroadcastAward(playerName, GoodEPGP.activeItem, chargedPrice)
 end
 
--- Charge a player for an item
-function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
-    local itemID = GoodEPGP:GetItemID(itemString)
-    if (itemID == nil) then
-        GoodEPGP:HandleOutput('Could not find item: ' .. itemString, type, member)
-        return
-    end
-
-    local price = GoodEPGP:GetPrice(itemID)
-    if (priceType == 'os') then
-        price = GoodEPGP:Round(price * .25, 2)
-    end
-
-    GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
-    GoodEPGP:AddGPByName(member, price)
-    return price
-end
+-- =====================
+-- GUI
+-- =====================
 
 function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidFrame = AceGUI:Create("Frame")
     GoodEPGP.bidFrame:SetTitle("GoodEPGP - Bids")
     GoodEPGP.bidFrame:SetStatusText("Current bids for " .. GoodEPGP.activeItem)
-    GoodEPGP.bidFrame:SetCallback("OnClose", function(widget)
-        GoodEPGP:HideBidFrame()
-    end)
+    GoodEPGP.bidFrame:SetCallback("OnClose",
+                                  function(widget) GoodEPGP:HideBidFrame() end)
     GoodEPGP.bidFrame:SetLayout("Flow")
 
     -- Create a container for the scrolling frame
@@ -153,7 +144,8 @@ function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidScrollFrame = AceGUI:Create("ScrollFrame")
     GoodEPGP.bidScrollFrame:SetLayout("Flow")
     GoodEPGP.bidScrollFrame:ClearAllPoints()
-    GoodEPGP.bidScrollFrame:SetPoint("TOP", GoodEPGP.bidScrollContainer.frame, "TOP", 0, -4)
+    GoodEPGP.bidScrollFrame:SetPoint("TOP", GoodEPGP.bidScrollContainer.frame,
+                                     "TOP", 0, -4)
     GoodEPGP.bidScrollFrame:SetPoint("BOTTOM", 0, 4)
     GoodEPGP.bidScrollContainer:AddChild(GoodEPGP.bidScrollFrame)
 
@@ -161,34 +153,23 @@ end
 
 -- Hide our bid frame
 function GoodEPGP:HideBidFrame()
-    if (GoodEPGP.bidFrame == nil) then
-        return
-    end
+    if (GoodEPGP.bidFrame == nil) then return end
     AceGUI:Release(GoodEPGP.bidFrame)
     GoodEPGP.bidFrame = nil
 end
 
-
 function GoodEPGP:UpdateBidFrame()
     -- Define our headers, and the width of each
     local headers = {
-        {180, "Player"},
-        {150, "Level/Class"},
-        {50, "EP"},
-        {50, "GP"},
-        {50, "Prio"},
-        {150, ""}
+        {180, "Player"}, {150, "Level/Class"}, {50, "EP"}, {50, "GP"},
+        {50, "Prio"}, {150, ""}
     }
 
     -- Sort by bids by prio
-    table.sort(GoodEPGP.bids, function(a, b)
-        return a.pr > b.pr
-    end)
+    table.sort(GoodEPGP.bids, function(a, b) return a.pr > b.pr end)
 
     -- Create or reset bid frame
-    if (GoodEPGP.bidFrame ~= nil) then
-        AceGUI:Release(GoodEPGP.bidFrame)
-    end
+    if (GoodEPGP.bidFrame ~= nil) then AceGUI:Release(GoodEPGP.bidFrame) end
     GoodEPGP:CreateBidFrame()
 
     -- If there's no bids, show a message.
@@ -197,7 +178,7 @@ function GoodEPGP:UpdateBidFrame()
         local noBidsLabel = AceGUI:Create("Label")
         noBidsLabel:SetText("No bids have been received yet.")
         noBidsLabel:SetJustifyH("Center")
-        noBidsLabel:SetFont("Fonts\\FRIZQT__.TTF", 16)        
+        noBidsLabel:SetFont("Fonts\\FRIZQT__.TTF", 16)
         noBidsLabel:SetFullWidth(true)
         GoodEPGP.bidScrollFrame:AddChild(noBidsLabel)
 
@@ -211,11 +192,9 @@ function GoodEPGP:UpdateBidFrame()
     GoodEPGP:AddBidFrameHeader(headers)
 
     -- Main Spec
-    for i=1, #GoodEPGP.bids do
+    for i = 1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
-        if (bid.type == "+") then
-            GoodEPGP:AddBidLine(bid, "ms")
-        end
+        if (bid.type == "+") then GoodEPGP:AddBidLine(bid, "ms") end
     end
 
     -- Add Spacer
@@ -231,11 +210,9 @@ function GoodEPGP:UpdateBidFrame()
     GoodEPGP:AddBidFrameHeader(headers)
 
     -- Off Spec
-    for i=1, #GoodEPGP.bids do
+    for i = 1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
-        if (bid.type == "-") then
-           GoodEPGP:AddBidLine(bid, "os")
-        end
+        if (bid.type == "-") then GoodEPGP:AddBidLine(bid, "os") end
     end
 end
 
@@ -256,9 +233,8 @@ function GoodEPGP:AddBidFrameHeader(headers)
     end
 end
 
-
 function GoodEPGP:AddBidLine(bid, bidType)
-    
+
     -- Add a simple group to put all the line in a container
     local bidLine = AceGUI:Create("SimpleGroup")
     bidLine:SetLayout("Flow")
@@ -311,3 +287,10 @@ function GoodEPGP:AddBidLine(bid, bidType)
     -- Add our line to the scroll frame
     GoodEPGP.bidScrollFrame:AddChild(bidLine)
 end
+
+-- =====================
+-- Hooks
+-- =====================
+
+-- Add a message filter to raid warnings to check for loot links!
+ChatFrame_AddMessageEventFilter("CHAT_MSG_RAID_WARNING", ChatFilterBids)

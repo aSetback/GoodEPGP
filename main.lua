@@ -388,6 +388,24 @@ function GoodEPGP:GetPrice(itemID)
     return price
 end
 
+-- Charge a player for an item
+function GoodEPGP:ChargeForItem(member, itemString, priceType, type, playerName)
+    local itemID = GoodEPGP:GetItemID(itemString)
+    if (itemID == nil) then
+        GoodEPGP:HandleOutput('Could not find item: ' .. itemString, type, member)
+        return
+    end
+
+    local price = GoodEPGP:GetPrice(itemID)
+    if (priceType == 'os') then
+        price = GoodEPGP:Round(price * .25, 2)
+    end
+
+    GoodEPGP:Debug("Adding " .. price .. "GP to " .. member .. " for " .. itemString)
+    GoodEPGP:AddGPByName(member, price)
+    return price
+end
+
 -- Retrieve the price of an item, and send it back via whisper/console
 function GoodEPGP:ShowPrice(item, type, playerName)
     -- Attempt to pull up item data via link
