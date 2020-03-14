@@ -144,8 +144,25 @@ function GoodEPGP:CreateBidFrame()
         GoodEPGP:HideBidFrame()
     end)
     GoodEPGP.bidFrame:SetLayout("Flow")
+
+    -- Create a container for the scrolling frame
+    GoodEPGP.bidScrollContainer = AceGUI:Create("SimpleGroup")
+    GoodEPGP.bidScrollContainer:SetFullWidth(true)
+    GoodEPGP.bidScrollContainer:SetFullHeight(true)
+    GoodEPGP.bidScrollContainer:SetLayout("Fill")
+    GoodEPGP.bidFrame:AddChild(GoodEPGP.bidScrollContainer)
+
+    -- Create scrolling frame for standings list to go into with 4px padding
+    GoodEPGP.bidScrollFrame = AceGUI:Create("ScrollFrame")
+    GoodEPGP.bidScrollFrame:SetLayout("Flow")
+    GoodEPGP.bidScrollFrame:ClearAllPoints()
+    GoodEPGP.bidScrollFrame:SetPoint("TOP", GoodEPGP.bidScrollContainer.frame, "TOP", 0, -4)
+    GoodEPGP.bidScrollFrame:SetPoint("BOTTOM", 0, 4)
+    GoodEPGP.bidScrollContainer:AddChild(GoodEPGP.bidScrollFrame)
+
 end
 
+-- Hide our bid frame
 function GoodEPGP:HideBidFrame()
     if (GoodEPGP.bidFrame == nil) then
         return
@@ -154,10 +171,11 @@ function GoodEPGP:HideBidFrame()
     GoodEPGP.bidFrame = nil
 end
 
-function GoodEPGP:UpdateBidFrame()
 
+function GoodEPGP:UpdateBidFrame()
+    -- Define our headers, and the width of each
     local headers = {
-        {200, "Player"},
+        {180, "Player"},
         {150, "Level/Class"},
         {50, "EP"},
         {50, "GP"},
@@ -165,7 +183,7 @@ function GoodEPGP:UpdateBidFrame()
         {150, ""}
     }
 
-    -- Sort by prio
+    -- Sort by bids by prio
     table.sort(GoodEPGP.bids, function(a, b)
         return a.pr > b.pr
     end)
@@ -184,7 +202,7 @@ function GoodEPGP:UpdateBidFrame()
         noBidsLabel:SetJustifyH("Center")
         noBidsLabel:SetFont("Fonts\\FRIZQT__.TTF", 16)        
         noBidsLabel:SetFullWidth(true)
-        GoodEPGP.bidFrame:AddChild(noBidsLabel)
+        GoodEPGP.bidScrollFrame:AddChild(noBidsLabel)
 
         return
     end
@@ -207,7 +225,7 @@ function GoodEPGP:UpdateBidFrame()
     local spacerLabel = AceGUI:Create("Label")
     spacerLabel:SetText(" ")
     spacerLabel:SetFullWidth(true)
-    GoodEPGP.bidFrame:AddChild(spacerLabel)
+    GoodEPGP.bidScrollFrame:AddChild(spacerLabel)
 
     -- Add title
     GoodEPGP:AddBidFrameTitle("Off Spec")
@@ -228,7 +246,7 @@ function GoodEPGP:AddBidFrameTitle(title)
     local titleLabel = AceGUI:Create("Heading")
     titleLabel:SetText(title)
     titleLabel:SetFullWidth(true)
-    GoodEPGP.bidFrame:AddChild(titleLabel)
+    GoodEPGP.bidScrollFrame:AddChild(titleLabel)
 end
 
 function GoodEPGP:AddBidFrameHeader(headers)
@@ -237,14 +255,19 @@ function GoodEPGP:AddBidFrameHeader(headers)
         local headerLabel = AceGUI:Create("Label")
         headerLabel:SetText(value[2])
         headerLabel:SetWidth(value[1])
-        GoodEPGP.bidFrame:AddChild(headerLabel)
+        GoodEPGP.bidScrollFrame:AddChild(headerLabel)
     end
 end
 
 
 function GoodEPGP:AddBidLine(bid, bidType)
     
+    -- Add a simple group to put all the line in a container
+    local bidLine = AceGUI:Create("SimpleGroup")
+    bidLine:SetLayout("Flow")
+    bidLine:SetFullWidth(true)
 
+    -- Add a button to actually assign the loot
     local assignButton = AceGUI:Create("Button")
     assignButton:SetText("Assign")
     assignButton:SetWidth(100)
@@ -258,7 +281,7 @@ function GoodEPGP:AddBidLine(bid, bidType)
 
     local playerLabel = AceGUI:Create("Label")
     playerLabel:SetText(bid.name)
-    playerLabel:SetWidth(200)
+    playerLabel:SetWidth(180)
     local classLabel = AceGUI:Create("Label")
 
     if (bid.spec ~= "") then
@@ -280,10 +303,14 @@ function GoodEPGP:AddBidLine(bid, bidType)
     prioLabel:SetText(bid.pr)
     prioLabel:SetWidth(100)
 
-    GoodEPGP.bidFrame:AddChild(playerLabel)
-    GoodEPGP.bidFrame:AddChild(classLabel)
-    GoodEPGP.bidFrame:AddChild(epLabel)
-    GoodEPGP.bidFrame:AddChild(gpLabel)
-    GoodEPGP.bidFrame:AddChild(prioLabel)
-    GoodEPGP.bidFrame:AddChild(assignButton)
+    -- Add each element to the line
+    bidLine:AddChild(playerLabel)
+    bidLine:AddChild(classLabel)
+    bidLine:AddChild(epLabel)
+    bidLine:AddChild(gpLabel)
+    bidLine:AddChild(prioLabel)
+    bidLine:AddChild(assignButton)
+
+    -- Add our line to the scroll frame
+    GoodEPGP.bidScrollFrame:AddChild(bidLine)
 end
