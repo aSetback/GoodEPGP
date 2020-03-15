@@ -93,8 +93,12 @@ end
 
 -- Confirm the item should be looted to player
 function GoodEPGP:ConfirmAwardItem(playerName, type)
-    local confirmString = "Are you sure you want to loot this item to " ..
-                              playerName .. " as " .. type .. "?"
+    local lootType = "main spec"
+    if (type == "os") then
+        lootType = "off spec"
+    end
+    local confirmString = "Loot this item to " ..
+                              playerName .. " for " .. lootType .. "?"
     GoodEPGP:ConfirmAction(confirmString, function()
         GoodEPGP:AwardItem(playerName, type)
         GoodEPGP:HideBidFrame()
@@ -138,6 +142,7 @@ function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidScrollContainer:SetFullWidth(true)
     GoodEPGP.bidScrollContainer:SetFullHeight(true)
     GoodEPGP.bidScrollContainer:SetLayout("Fill")
+    GoodEPGP.bidScrollContainer.frame:SetBackdrop({ bgFile = ""})
     GoodEPGP.bidFrame:AddChild(GoodEPGP.bidScrollContainer)
 
     -- Create scrolling frame for standings list to go into with 4px padding
@@ -147,6 +152,8 @@ function GoodEPGP:CreateBidFrame()
     GoodEPGP.bidScrollFrame:SetPoint("TOP", GoodEPGP.bidScrollContainer.frame,
                                      "TOP", 0, -4)
     GoodEPGP.bidScrollFrame:SetPoint("BOTTOM", 0, 4)
+    GoodEPGP.bidScrollFrame.frame:SetBackdrop({ bgFile = ""})
+
     GoodEPGP.bidScrollContainer:AddChild(GoodEPGP.bidScrollFrame)
 
 end
@@ -161,7 +168,7 @@ end
 function GoodEPGP:UpdateBidFrame()
     -- Define our headers, and the width of each
     local headers = {
-        {180, "Player"}, {150, "Level/Class"}, {50, "EP"}, {50, "GP"},
+        {20, " "}, {170, "Player"}, {150, "Level/Class"}, {50, "EP"}, {50, "GP"},
         {50, "Prio"}, {150, ""}
     }
 
@@ -192,6 +199,7 @@ function GoodEPGP:UpdateBidFrame()
     GoodEPGP:AddBidFrameHeader(headers)
 
     -- Main Spec
+    GoodEPGP.bidCounter = 0
     for i = 1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
         if (bid.type == "+") then GoodEPGP:AddBidLine(bid, "ms") end
@@ -210,6 +218,7 @@ function GoodEPGP:UpdateBidFrame()
     GoodEPGP:AddBidFrameHeader(headers)
 
     -- Off Spec
+    GoodEPGP.bidCounter = 0
     for i = 1, #GoodEPGP.bids do
         local bid = GoodEPGP.bids[i]
         if (bid.type == "-") then GoodEPGP:AddBidLine(bid, "os") end
@@ -234,11 +243,19 @@ function GoodEPGP:AddBidFrameHeader(headers)
 end
 
 function GoodEPGP:AddBidLine(bid, bidType)
-
     -- Add a simple group to put all the line in a container
     local bidLine = AceGUI:Create("SimpleGroup")
     bidLine:SetLayout("Flow")
     bidLine:SetFullWidth(true)
+
+    -- Set the background
+    GoodEPGP.bidCounter = GoodEPGP.bidCounter + 1
+    bidLine.frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+    if (GoodEPGP.bidCounter % 2 == 1) then
+        bidLine.frame:SetBackdropColor(0, 0, 0, 1)
+    else
+        bidLine.frame:SetBackdropColor(.2, .2, .2, .8)
+    end
 
     -- Add a button to actually assign the loot
     local assignButton = AceGUI:Create("Button")
@@ -250,11 +267,11 @@ function GoodEPGP:AddBidLine(bid, bidType)
 
     local spacerLabel = AceGUI:Create("Label")
     spacerLabel:SetText(" ")
-    spacerLabel:SetWidth(50)
+    spacerLabel:SetWidth(20)
 
     local playerLabel = AceGUI:Create("Label")
     playerLabel:SetText(bid.name)
-    playerLabel:SetWidth(180)
+    playerLabel:SetWidth(170)
     local classLabel = AceGUI:Create("Label")
 
     if (bid.spec ~= "") then
@@ -277,6 +294,7 @@ function GoodEPGP:AddBidLine(bid, bidType)
     prioLabel:SetWidth(100)
 
     -- Add each element to the line
+    bidLine:AddChild(spacerLabel)
     bidLine:AddChild(playerLabel)
     bidLine:AddChild(classLabel)
     bidLine:AddChild(epLabel)

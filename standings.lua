@@ -480,6 +480,7 @@ end
 -- Broadcast item award to all players with the add-on
 function GoodEPGP:BroadcastAward(player, item, price)
     GoodEPGP:AddonMessage("Award:" .. player .. ":" .. item .. ":" .. price)
+    GoodEPGP:WidestAudience("Awarded " .. item .. " to " .. player .. " for " .. price .. " GP.")
 end
 
 -- Show standings by class, with a minimum priority (1 by default)
