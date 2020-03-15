@@ -585,11 +585,19 @@ function GoodEPGP:MasterLootByName(playerName)
     playerName = GoodEPGP:UCFirst(playerName)
     for i = 1, 40 do
         local candidate = GetMasterLootCandidate(GoodEPGP.activeItemIndex, i)
+        -- We found the correct person ..
         if (candidate == playerName) then
-            -- Award the item
-            GiveMasterLoot(GoodEPGP.activeItemIndex, i)
+            -- Go through the loot items, and make sure it's still in the right spot
+            for itemIndex = 1, GetNumLootItems() do
+                local itemLink = GetLootSlotLink(itemIndex)
+                if (itemLink == GoodEPGP.activeItem) then
+                    -- Award the item
+                    GiveMasterLoot(GoodEPGP.activeItemIndex, i)
+                end
+            end
         end
     end
+   GoodEPGP:Debug("Could not loot item")
 end
 
 -- Add EP to a player by their name
@@ -617,7 +625,7 @@ end
 function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
 
     -- If our addEp or addGp params are set, add the amount before setting.
-	local index = GoodEPGP:GetMemebersGuildIndex(player)
+    local index = GoodEPGP:GetMembersGuildIndex(player)
     if (addEp ~= nil or addGp ~= nil) then
 		local name, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(index)
 		if (player == select(1, strsplit("-", name))) then
@@ -686,7 +694,7 @@ function GoodEPGP:ValidSpecsByClass(playerClass, spec)
 	return false
 end
 
-function GoodEPGP:GetMemebersGuildIndex(player)
+function GoodEPGP:GetMembersGuildIndex(player)
 	local player = select(1, strsplit("-", player))
 	for index = 1, GetNumGuildMembers() do
 		local name = GetGuildRosterInfo(index)
@@ -699,7 +707,7 @@ end
 -- Set a player's spec
 function GoodEPGP:SetSpec(player, spec)
 	local player = select(1, strsplit("-", player))
-	local index = GoodEPGP:GetMemebersGuildIndex(player)
+    local index = GoodEPGP:GetMembersGuildIndex(player)
 	local class = select(5, GetGuildRosterInfo(index))
 	-- TODO: create a clean up routine to validate member notes
 		-- Main Toon: [Specialization]
