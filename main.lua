@@ -708,6 +708,18 @@ function GoodEPGP:GetGuildMemberByName(name)
             end
         end
     end
+
+    -- If there's a player that can't be found within the guild ...
+    if (playerInfo == nil) then
+        playerInfo = {
+            ["name"] = GoodEPGP:UCFirst(name),
+            ["spec"] = '',
+            ["class"] = '',
+            ["ep"] = 0,
+            ["gp"] = 0,
+            ["pr"] = 0,
+        }
+    end
     return playerInfo
 end
 
