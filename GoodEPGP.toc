@@ -14,3 +14,4 @@ standings.lua
 prices.lua
 specs.lua
 menu.lua
+bids.lua
