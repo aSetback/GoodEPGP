@@ -10,6 +10,9 @@ function SlashCmdList.GEP(msg, editbox)
     GoodEPGP:PublicCommands(msg)
 end
 
+-- Current Game Phase
+GoodEPGPphase = 3
+
 function GoodEPGP:OnInitialize()
 
 	-- Enable add-on messages
@@ -113,7 +116,7 @@ function GoodEPGP:OnEnable()
     GoodEPGP:LoadAllStandings()
 
     -- Load the prices table
-    GoodEPGP:LoadAllPrices()
+    GoodEPGP:LoadAllPrices(GoodEPGPphase)
 
     -- Add the tabs to the menu frame
     GoodEPGP:CreateMenuTabs()
@@ -128,6 +131,7 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
     if (prefix == "GoodEPGP") then
         local player = select(1, strsplit("-", sender))
 
+		-- Standings Messages
         if (text == "requestStandings") then
             GoodEPGP:StandingsAvailability(player)
         end
@@ -148,12 +152,8 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
         if (text == "standingsBroadcastComplete") then
 			GoodEPGP:Debug("Standings broadcast complete...")
             GoodEPGP:StandingsUpdateLastUpdated()
-
-			-- Wipe the standingsLinesFrames and release all widgets (prevents memory bloat)
 			GoodEPGP.standingsScrollFrame:ReleaseChildren()
 			GoodEPGP.standingsLinesFrames = {}
-
-			-- Over-ride previous sortOrder and force ASC
 			GoodEPGP.standingsFrame.sortOrder = "DESC"
 			GoodEPGP:StandingsSort("name")
         end
@@ -161,6 +161,24 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
         if (string.sub(text, 1, 2) == "S:") then
             GoodEPGP:ReceiveStandings(text)
         end
+
+		-- Set Player Spec Messages
+		if (text == "requestSetSpecialization") then
+			GoodEPGP:RequestSetSpec(player)
+		end
+
+		if (text == "setSpecializationAvailable") then
+            if (GoodEPGP.requestSetSpec) then
+                GoodEPGP.requestSetSpec = false
+                GoodEPGP:Debug("Sending setSpecialization request to " .. player)
+                GoodEPGP:AddonMessage("setSpecialization:"..GoodEPGP.tempReqSpec, player)
+			end
+		end
+
+		if (text:find("setSpecialization:")) then
+			local spec = select(2, strsplit(":", text))
+			GoodEPGP:SetSpec(player, spec)
+		end
     end
 end
 
@@ -659,28 +677,28 @@ end
 
 -- Set a player's EPGP by name (used on mass updates)
 function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
-    -- If our addEp or addGp params are set, add the amount before setting.
-    if (addEp ~= nil or addGp ~= nil) then
-        for i = 1, GetNumGuildMembers() do
-            local name, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
-            if (player == select(1, strsplit("-", name))) then
-                ep = select(1, strsplit(",", officerNote))
-                gp = select(2, strsplit(",", officerNote))
-                if (ep == nil or ep == "") then
-                    ep = 0
-                end
-                if (gp == nil or gp == "") then
-                    gp = GoodEPGP.config.minGP
-                end
 
-                if (addEp ~= nil) then
-                    ep = tonumber(ep) + tonumber(addEp)
-                end
-                if (addGp ~= nil) then
-                    gp = tonumber(gp) + tonumber(addGp)
-                end
-            end
-        end
+    -- If our addEp or addGp params are set, add the amount before setting.
+	local index = GoodEPGP:GetMemebersGuildIndex(player)
+    if (addEp ~= nil or addGp ~= nil) then
+		local name, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(index)
+		if (player == select(1, strsplit("-", name))) then
+			ep = select(1, strsplit(",", officerNote))
+			gp = select(2, strsplit(",", officerNote))
+			if (ep == nil or ep == "") then
+				ep = 0
+			end
+			if (gp == nil or gp == "") then
+				gp = GoodEPGP.config.minGP
+			end
+
+			if (addEp ~= nil) then
+				ep = tonumber(ep) + tonumber(addEp)
+			end
+			if (addGp ~= nil) then
+				gp = tonumber(gp) + tonumber(addGp)
+			end
+		end
     end
 
     -- Round our EP & GP
@@ -688,57 +706,90 @@ function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
     gp = GoodEPGP:Round(gp, 2)
 
     -- Set the EPGP record
-    for i = 1, GetNumGuildMembers() do
-        local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(i)
-        if (player == select(1, strsplit("-", name))) then
-            -- Format our officer note
-            local epgpString = tostring(ep) .. "," .. tostring(gp)
+	local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(index)
+	if (player == select(1, strsplit("-", name))) then
+		-- Format our officer note
+		local epgpString = tostring(ep) .. "," .. tostring(gp)
 
-            -- Inform to console
-            GoodEPGP:Debug('Updated ' .. player .. ' to ' .. epgpString);
+		-- Inform to console
+		GoodEPGP:Debug('Updated ' .. player .. ' to ' .. epgpString);
 
-            -- Update the officer note
-            GuildRosterSetOfficerNote(i, epgpString)
-        end
-    end
+		-- Update the officer note
+		GuildRosterSetOfficerNote(index, epgpString)
+	end
+end
+
+function GoodEPGP:ValidSpecsByClass(playerClass, spec)
+
+	-- If both values are passed and are true then return true
+	if playerClass and spec then
+		for key, value in pairs(GoodEPGP.specs) do
+			if (value[1] == playerClass and value[2] == spec) then
+				return true
+			end
+		end
+
+	-- If only playerClass is passed then it returns valid specs for that class
+	elseif playerClass then
+		local validSpecs = {}
+		for key, value in pairs(GoodEPGP.specs) do
+			if (value[1] == playerClass) then
+				table.insert(validSpecs, value[2])
+			end
+		end
+		if #validSpecs > 0 then
+			return validSpecs
+		else
+			return false
+		end
+	end
+
+	-- If no values are passed or none of the above are true then return false
+	return false
+end
+
+function GoodEPGP:GetMemebersGuildIndex(player)
+	local player = select(1, strsplit("-", player))
+	for index = 1, GetNumGuildMembers() do
+		local name = GetGuildRosterInfo(index)
+		if (player == select(1, strsplit("-", name))) then
+			return index
+		end
+	end
 end
 
 -- Set a player's spec
 function GoodEPGP:SetSpec(player, spec)
-    player = select(1, strsplit("-", player))
+	local player = select(1, strsplit("-", player))
+	local index = GoodEPGP:GetMemebersGuildIndex(player)
+	local class = select(5, GetGuildRosterInfo(index))
+	-- TODO: create a clean up routine to validate member notes
+		-- Main Toon: [Specialization]
+		-- Alt Toon: [Specialization]:[Main Toon Name]
+	local note = select(7, GetGuildRosterInfo(index))
+	local spec = GoodEPGP:UCFirst(spec) -- edge case to catch cmd line input laziness
+	local validSpec = GoodEPGP:ValidSpecsByClass(class, spec)
 
-    local playerClass = nil
-    -- Loop through and grab the player's current class
-    for i = 1, GetNumGuildMembers() do
-        local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(i)
-        if (player == select(1, strsplit("-", name))) then
-            playerClass = class;
-            GoodEPGP:Debug(playerClass)
-        end
+	if validSpec then
+		-- We're an officer
+		if (CanEditOfficerNote()) then
+			GuildRosterSetPublicNote(index, spec)
+
+		-- Not an officer - send request
+		else
+			GoodEPGP:AddonMessage("requestSetSpecialization")
+			GoodEPGP.requestSetSpec = true
+			GoodEPGP.tempReqSpec = spec
+		end
+	end
+end
+
+-- Let user know you can set the requested spec
+function GoodEPGP:RequestSetSpec(player)
+    -- Verify you can actually SEE officer notes before offering to set spec
+    if (CanEditOfficerNote()) then
+        GoodEPGP:AddonMessage("setSpecializationAvailable", player)
     end
-
-    -- Loop through and check if this is a valid spec
-    local validSpec = false
-    for key, value in pairs(GoodEPGP.specs) do
-        if (value[1]:lower() == playerClass:lower() and value[2]:lower() == spec:lower()) then
-            validSpec = true
-        end
-    end
-
-    -- Reply based on whether it's a valid spec, then set the member note
-    if (validSpec) then
-        for i = 1, GetNumGuildMembers() do
-            local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(i)
-            if (player == select(1, strsplit("-", name))) then
-                GuildRosterSetPublicNote(i, GoodEPGP:UCFirst(spec))
-            end
-        end
-        GoodEPGP:SendWhisper("Your specialization has been set.", player)
-    else
-        GoodEPGP:SendWhisper("Please choose a valid spec for your class.", player)
-    end
-
-    return
 end
 
 -- Get a player's index within the guild roster
@@ -1019,7 +1070,6 @@ function GoodEPGP:AddBidFrameHeader()
         GoodEPGP.bidFrame:AddChild(headerLabel)
     end
 end
-
 
 function GoodEPGP:AddBidLine(bid, bidType)
     local AceGUI = LibStub("AceGUI-3.0")

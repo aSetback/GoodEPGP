@@ -106,9 +106,9 @@ function GoodEPGP:confirmDialog(title, text, validateFunction, acceptFunction)
     end)
 end
 
--- ===
+-- ========================
 -- === Validation functions
--- ===
+-- ========================
 
 -- Verify a number is numeric
 function GoodEPGP:isNumeric(value)
@@ -128,32 +128,62 @@ function GoodEPGP:isInRaid()
     end
 end
 
--- ===
+-- =======================
 -- === Build out our menus
--- ===
+-- =======================
 
 -- Build the player menu
 function GoodEPGP:BuildPlayerMenu()
     local playerHeading = AceGUI:Create("Heading")
-    playerHeading:SetText("List Views")
+    playerHeading:SetText("GoodEPGP Price List")
     playerHeading:SetFullWidth(true)
     GoodEPGP.menuTabs:AddChild(playerHeading)
 
+	-- Create the Prices Button
     local priceButton = AceGUI:Create("Button")
     priceButton:SetText("Price List")
     priceButton:SetCallback("OnClick", function()
         GoodEPGP:TogglePrices()
     end)
 
+	-- Create the Standings Button
     local standingsButton = AceGUI:Create("Button")
     standingsButton:SetText("EPGP Standings")
     standingsButton:SetCallback("OnClick", function()
         GoodEPGP:ToggleStandings()
     end)
 
-    -- Add the widget to our options frame
+	-- Create the SetSpec Dropdown
+	local playerSpecDropdown = AceGUI:Create("Dropdown")
+	playerSpecDropdown:SetLabel("Current Talent Specification")
+	local currentSpec = GoodEPGP:GetGuildMemberByName(UnitName("player")).spec
+	local playersClass = GoodEPGP:GetGuildMemberByName(UnitName("player")).class
+	local playersSpecs = GoodEPGP:ValidSpecsByClass(playersClass)
+	local validCurrentSpec = GoodEPGP:ValidSpecsByClass(playersClass, currentSpec)
+	playerSpecDropdown:SetList(playersSpecs)
+
+	-- Member has a spec set
+	if validCurrentSpec then
+		for i = 1, #playersSpecs do
+			if currentSpec == playersSpecs[i] then
+				playerSpecDropdown:SetValue(i)
+				break
+			end
+		end
+
+	-- Member has no spec set
+	else
+		playerSpecDropdown:SetText("Select Your Spec")
+	end
+	playerSpecDropdown:SetCallback("OnValueChanged", function(widget)
+		local selectedSpec = playersSpecs[widget:GetValue()];
+		GoodEPGP:SetSpec(UnitName("player"), selectedSpec)
+	end)
+
+    -- Add the widgets to our options frame
     GoodEPGP.menuTabs:AddChild(priceButton)
     GoodEPGP.menuTabs:AddChild(standingsButton)
+	GoodEPGP.menuTabs:AddChild(playerSpecDropdown)
 end
 
 

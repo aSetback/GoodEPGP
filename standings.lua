@@ -102,12 +102,50 @@ end
 
 -- Request standings
 function GoodEPGP:RequestStandings()
+
+	-- If Officer, intercept request and re-route locally
 	if (CanEditOfficerNote()) then
-		GoodEPGP:AddonMessage("requestStandings", UnitName("player"))
+
+		-- Debug info
+		local player = select(1, strsplit("-", UnitName("player")))
+		GoodEPGP:Debug("You're an Officer ".. player ..", getting standings...")
+
+		-- Clear standings cache
+		GoodEPGPCachedStandings = {}
+
+		-- Get standings from officer notes
+		for i = 1, GetNumGuildMembers() do
+			local name = GetGuildRosterInfo(i)
+			name = select(1, strsplit("-", name))
+			local member = GoodEPGP:GetGuildMemberByName(name)
+            local playerInfo = {
+                ["name"] = member.name,
+                ["class"] = member.class,
+                ["spec"] = member.spec,
+                ["ep"] = member.ep,
+                ["gp"] = member.gp,
+                ["pr"] = GoodEPGP:Round(member.ep/member.gp, 2)
+            };
+			 if (tonumber(playerInfo.ep) > 0) then
+				table.insert(GoodEPGPCachedStandings, playerInfo)
+			end
+		end
+
+		-- Stamp update
+		GoodEPGP:StandingsUpdateLastUpdated()
+
+		-- Wipe the standingsLinesFrames and release all widgets (prevents memory bloat)
+		GoodEPGP.standingsScrollFrame:ReleaseChildren()
+		GoodEPGP.standingsLinesFrames = {}
+
+		-- Over-ride previous sortOrder and force ASC
+		GoodEPGP.standingsFrame.sortOrder = "DESC"
+		GoodEPGP:StandingsSort("name")
 	else
+		-- Not an officer - send request
 	    GoodEPGP:AddonMessage("requestStandings")
+		GoodEPGP.requestStandings = true
 	end
-    GoodEPGP.requestStandings = true
 end
 
 -- Let user know you have standings available
@@ -151,7 +189,7 @@ function GoodEPGP:CreateStandingsFrame()
 
         -- Add class filter dropdown
         GoodEPGP.standingsFrame.classSelectDropdown = AceGUI:Create("Dropdown")
-        GoodEPGP.standingsFrame.classSelectDropdown:SetLabel("Class")
+        GoodEPGP.standingsFrame.classSelectDropdown:SetLabel(" Class")
         GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
         GoodEPGP.standingsFrame.classSelectDropdown:SetList(classList)
         GoodEPGP.standingsFrame.classSelectDropdown:SetCallback("OnValueChanged", function(widget)
@@ -162,7 +200,7 @@ function GoodEPGP:CreateStandingsFrame()
 
 		-- Add role filter dropdown
         GoodEPGP.standingsFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
-        GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel("Role")
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel(" Role")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetList(roleList)
         GoodEPGP.standingsFrame.roleSelectDropdown:SetCallback("OnValueChanged", function(widget)
