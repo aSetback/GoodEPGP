@@ -49,6 +49,7 @@ function GoodEPGP:CreateMenuTabs()
         elseif (group == "config") then
             GoodEPGP:BuildConfigMenu()
         end
+		GoodEPGP.menuFrame:SetStatusText("")
     end)
     GoodEPGP.menuFrame:AddChild(GoodEPGP.menuTabs)
 
@@ -70,6 +71,7 @@ function GoodEPGP:ToggleMenuFrame()
         GoodEPGP.menuFrame:Show()
         GoodEPGP.menuTabs:SelectTab(GoodEPGP.menuTabs.default)
     end
+	GoodEPGP.menuFrame:SetStatusText("")
 end
 
 -- Add EP to raid after confirming with the player

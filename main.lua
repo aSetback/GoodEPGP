@@ -704,29 +704,110 @@ function GoodEPGP:GetMembersGuildIndex(player)
 	end
 end
 
--- Set a player's spec
+--------------------------------------------------------------------------------------------------
+-- Set a player's spec. This assumes that your guild is using the following format for their Guild
+-- Notes. This format is also compatible with and recommended for the Discord Bot named GoodBot.
+
+-- '[Player Spec]:Main' <-- For Main Characters
+-- '[Player Spec]:[Players Main Name]' <-- For Alt Characters
+-----------------------------------------------------------
 function GoodEPGP:SetSpec(player, spec)
-	local player = select(1, strsplit("-", player))
+	local player = GoodEPGP:UCFirst(select(1, strsplit("-", player)))
     local index = GoodEPGP:GetMembersGuildIndex(player)
+	local rank = select(2, GetGuildRosterInfo(index))
 	local class = select(5, GetGuildRosterInfo(index))
-	-- TODO: create a clean up routine to validate member notes
-		-- Main Toon: [Specialization]
-		-- Alt Toon: [Specialization]:[Main Toon Name]
-	local note = select(7, GetGuildRosterInfo(index))
 	local spec = GoodEPGP:UCFirst(spec) -- edge case to catch cmd line input laziness
-	local validSpec = GoodEPGP:ValidSpecsByClass(class, spec)
+	local gMemNote = GoodEPGP:UCFirst(select(7, GetGuildRosterInfo(index)))
+	local gMemSpec = select(1, strsplit(":", gMemNote))
+	local gMemName = GoodEPGP:UCFirst(select(2, strsplit(":", gMemNote)))
+	local oldMemSpec = GoodEPGP:ValidSpecsByClass(class, spec)
+	local oldMemName = (GoodEPGP:GetMembersGuildIndex(gMemNote)) > 0)
 
-	if validSpec then
-		-- We're an officer
+	------------------------------------
+	-- New Guild Note format Logic stack
+	------------------------------------
+
+	-- Is the spec a valid spec?
+	if gMemSpec and GoodEPGP:ValidSpecsByClass(class, gMemSpec) then
+		local validGmemSpec = gMemSpec
+	end
+
+	-- Is the name an actual member of the guild or just a "Main" tag?
+	if gMemName and ((GoodEPGP:GetMembersGuildIndex(gMemName) > 0) or (gMemName == "Main")) then
+		local validGmemName = gMemName
+	end
+
+	-- We found a note in the new format
+	if validGmemSpec and validGmemName and spec ~= gMemSpec then
 		if (CanEditOfficerNote()) then
-			GuildRosterSetPublicNote(index, spec)
 
-		-- Not an officer - send request
-		else
-			GoodEPGP:AddonMessage("requestSetSpecialization")
-			GoodEPGP.requestSetSpec = true
-			GoodEPGP.tempReqSpec = spec
+			-- Form the new note with the modified spec
+			local nSpec = spec..":"..gMemName
+			GuildRosterSetPublicNote(index, nSpec)
 		end
+
+	-----------------------------------------------------------------------------------------------
+	-- Old Guild Note format logic stack --> New Guild Note format. Will also clean up after
+	-- Officers who don't manually set the Guild Note correctly. At some point one can comment out
+	-- this code or keep it. All the code above this section will not work or error unless the new
+	-- format is used for the character that this function is being run against.
+	-----------------------------------------------------------------------------------------------
+
+	-- All we found is a valid spec
+	elseif oldMemSpec and oldMemSpec ~= spec then
+		if (CanEditOfficerNote()) then
+
+			-- Look for the Alt rank and tag it
+			if (rank:find == "Alt") or (rank:find == " Alt") then
+				local nSpec = spec..":Alt(Find Main please)"
+				GuildRosterSetPublicNote(index, nSpec)
+
+			-- Assume its a "Main"
+			else
+				local nSpec = spec..":Main"
+				GuildRosterSetPublicNote(index, nSpec)
+			end
+		end
+
+	-- All we found is a valid name of a memeber in the guild
+	elseif oldMemName then
+		if (CanEditOfficerNote()) then
+
+			-- We assume this name is the Mains name
+			local nSpec = spec..":"..oldMemName
+			GuildRosterSetPublicNote(index, nSpec)
+		end
+
+	-- Blank Note
+	else
+		if (CanEditOfficerNote()) then
+
+			-- Look for the Alt rank and tag it
+			if (rank:find == "Alt") or (rank:find == " Alt") then
+				local nSpec = spec..":Alt(Find Main please)"
+				GuildRosterSetPublicNote(index, nSpec)
+
+			-- Assume its a "Main"
+			else
+				local nSpec = spec..":Main"
+				GuildRosterSetPublicNote(index, nSpec)
+			end
+		end
+	end
+
+	-- Not an officer - send request
+	GoodEPGP:AddonMessage("requestSetSpecialization")
+	GoodEPGP.requestSetSpec = true
+	GoodEPGP.tempReqSpec = spec
+
+	-- We have not recieved an answer to our request - no officers online
+	if (GoodEPGP.requestSetSpec == true) do
+		GoodEPGP.menuFrame:SetStatusText("|cff8b0000Spec change failed - no officers online|r")
+	end
+
+	-- Officer was online - spec set successfully
+	if (GoodEPGP.requestSetSpec == false) do
+		GoodEPGP.menuFrame:SetStatusText("|cff228B22Spec changed successfully to: "..spec.."|r")
 	end
 end
 
