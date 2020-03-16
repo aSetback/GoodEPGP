@@ -158,16 +158,18 @@ function GoodEPGP:BuildPlayerMenu()
 	-- Create the SetSpec Dropdown
 	local playerSpecDropdown = AceGUI:Create("Dropdown")
 	playerSpecDropdown:SetLabel("Current Talent Specification")
-	local currentSpec = GoodEPGP:GetGuildMemberByName(UnitName("player")).spec
-	local playersClass = GoodEPGP:GetGuildMemberByName(UnitName("player")).class
-	local playersSpecs = GoodEPGP:ValidSpecsByClass(playersClass)
-	local validCurrentSpec = GoodEPGP:ValidSpecsByClass(playersClass, currentSpec)
+	local index = GoodEPGP:GetMembersGuildIndex(UnitName("player"))
+	local class = select(1, UnitClass("player"))
+	local gMemNote = select(7, GetGuildRosterInfo(index))
+	local gMemSpec = GoodEPGP:UCFirst(select(1, strsplit(":", gMemNote)))
+	local playersSpecs = GoodEPGP:ValidSpecsByClass(class)
+	local validCurrentSpec = GoodEPGP:ValidSpecsByClass(class, gMemSpec)
 	playerSpecDropdown:SetList(playersSpecs)
 
 	-- Member has a spec set
 	if validCurrentSpec then
 		for i = 1, #playersSpecs do
-			if currentSpec == playersSpecs[i] then
+			if gMemSpec == playersSpecs[i] then
 				playerSpecDropdown:SetValue(i)
 				break
 			end
@@ -179,6 +181,7 @@ function GoodEPGP:BuildPlayerMenu()
 	end
 	playerSpecDropdown:SetCallback("OnValueChanged", function(widget)
 		local selectedSpec = playersSpecs[widget:GetValue()];
+		GoodEPGP:CancelAllTimers()
 		GoodEPGP:SetSpec(UnitName("player"), selectedSpec)
 	end)
 
