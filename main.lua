@@ -502,6 +502,20 @@ function GoodEPGP:GetItemID(itemString)
     return itemID
 end
 
+function GoodEPGP:GetGuildRoster()
+    local guildRoster = {};
+    for i = 1, GetNumGuildMembers() do
+        local player = select(1, GetGuildRosterInfo(i))
+        -- Remove realm name
+        player = select(1, strsplit("-", player))
+        table.insert(guildRoster, player)
+    end
+
+    table.sort(guildRoster)
+
+    return guildRoster
+end
+
 -- Retrieve the current guild roster
 function GoodEPGP:ExportGuildRoster()
     GoodEPGP.standings = {};
@@ -784,7 +798,7 @@ end
 
 -- Reset EPGP of all members
 function GoodEPGP:Reset()
-    -- Loop through guild roster, decay all members
+    -- Loop through guild roster, reset all members
     for i = 1, GetNumGuildMembers() do
         local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
         local ep = 0
@@ -820,7 +834,8 @@ function GoodEPGP:Decay()
     end
 
     local decayPercent = GoodEPGP:Round(GoodEPGP.config.decayPercent * 100, 0) .. '%.'
-    GoodEPGP:Debug("EP & GP have been decayed by " .. decayPercent)
+
+    GoodEPGP:SendGuild("EP & GP have been decayed by " .. decayPercent)
 end
 
 -- Round all player's EP & GP to 2 decimal places
