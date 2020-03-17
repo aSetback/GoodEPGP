@@ -75,37 +75,73 @@ function GoodEPGP:ToggleMenuFrame()
 end
 
 -- Add EP to raid after confirming with the player
-function GoodEPGP:epToRaid()
-    GoodEPGP:confirmDialog("Add EP to Raid", "How much EP would you like to award to the raid?", "isNumeric", "AddEPToRaid")
+function GoodEPGP:AssignRaidEP()
+    GoodEPGP:InputDialog("Add EP to Raid", "How much EP would you like to award to the raid?", "AddEPToRaid")
+end
+
+-- Create a confirmation dialog to make sure we want to decay
+function GoodEPGP:DecayEPGP()
+    GoodEPGP:ConfirmAction("Are you sure you want to decay EPGP?", function() 
+        GoodEPGP:Decay()
+    end, function() 
+        -- Do nothing
+    end)
+end
+
+-- Dialog to assign player EP
+function GoodEPGP:AssignPlayerEP()
+    GoodEPGP:InputDialog("Add EP to Player", "How much EP would you like to award?", "AddEPToPlayer", true)
+end
+
+-- Dialog to assign player GP
+function GoodEPGP:AssignPlayerGP()
+    GoodEPGP:InputDialog("Add GP to Player", "How much GP would you like to award?", "AddGPToPlayer", true)
 end
 
 -- Generate a confirmation dialog
-function GoodEPGP:confirmDialog(title, text, validateFunction, acceptFunction)
-    local container = AceGUI:Create("Frame")
-    container:SetTitle(title)
-    container:SetWidth(300)
-    container:SetHeight(100)
-    container:SetLayout("Fill")
+function GoodEPGP:InputDialog(title, text, acceptFunction, includePlayers)
+    GoodEPGP.inputDialogFrame = AceGUI:Create("Dialog")
+    GoodEPGP.inputDialogFrame:SetTitle(title)
+    GoodEPGP.inputDialogFrame:SetWidth(300)
+    GoodEPGP.inputDialogFrame:SetHeight(200)
+    GoodEPGP.inputDialogFrame:SetLayout("Flow")
 
-    local input = AceGUI:Create("EditBox")
-    container:AddChild(input)
-    input:SetLabel(text)
-    input:SetMaxLetters(4)
-    input:SetCallback("OnTextChanged", function(widget)
-        local enteredText = widget:GetText()
-        if (GoodEPGP[validateFunction](GoodEPGP, enteredText)) then
-            widget:DisableButton(false)
-        else
-            widget:DisableButton(true)
+    if (includePlayers) then
+        GoodEPGP.dialogDropdown = AceGUI:Create("Dropdown")
+        GoodEPGP.dialogDropdown:SetFullWidth(true)
+        GoodEPGP.dialogDropdown.guildRoster = GoodEPGP:GetGuildRoster()
+        GoodEPGP.dialogDropdown:SetLabel("Player")
+        GoodEPGP.dialogDropdown:SetList(GoodEPGP.dialogDropdown.guildRoster)
+        GoodEPGP.inputDialogFrame:AddChild(GoodEPGP.dialogDropdown)
+    end
+
+    GoodEPGP.dialogInput = AceGUI:Create("EditBox")
+    GoodEPGP.dialogInput:SetFullWidth(true)
+    GoodEPGP.dialogInput:DisableButton(true)
+    GoodEPGP.dialogInput:SetLabel(text)
+    GoodEPGP.dialogInput:SetMaxLetters(3)
+    GoodEPGP.inputDialogFrame:AddChild(GoodEPGP.dialogInput)
+
+    GoodEPGP.inputDialogFrame:SetCallback("OnAccept", function() 
+        local amount = tostring(GoodEPGP.dialogInput:GetText())
+        local player = nil
+        if (includePlayers) then
+            player = GoodEPGP.dialogDropdown.guildRoster[GoodEPGP.dialogDropdown:GetValue()]
         end
+        GoodEPGP[acceptFunction](GoodEPGP, amount, player)
+        GoodEPGP.inputDialogFrame:Release()
     end)
-    input:SetCallback("OnEnterPressed", function(widget)
-        local enteredText = widget:GetText()
-        if (GoodEPGP[validateFunction](GoodEPGP, enteredText)) then
-            GoodEPGP[acceptFunction](GoodEPGP, enteredText)
-            container:Release()
-        end
-    end)
+
+end
+
+-- Add EP to player
+function GoodEPGP:AddEPToPlayer(amount, player)
+    GoodEPGP:AddEPByName(player, amount)
+end
+
+-- Add GP to player
+function GoodEPGP:AddGPToPlayer(amount, player)
+    GoodEPGP:AddGPByName(player, amount)
 end
 
 -- ========================
@@ -200,7 +236,10 @@ function GoodEPGP:BuildAdminMenu()
     GoodEPGP.menuTabs:AddChild(adminHeading)
 
     local adminButtons = {
-        {["name"] = "Assign EP to Raid", ["functionName"] = "epToRaid", ["enableFunction"] = "isInRaid"}
+        {["name"] = "Assign EP to Raid", ["functionName"] = "AssignRaidEP", ["enableFunction"] = "isInRaid"},
+        {["name"] = "Assign EP to Player", ["functionName"] = "AssignPlayerEP"},
+        {["name"] = "Assign GP to Player", ["functionName"] = "AssignPlayerGP"},
+        {["name"] = "Decay EP & GP", ["functionName"] = "DecayEPGP"}
     }
 
     for key, button in pairs(adminButtons) do
@@ -209,7 +248,9 @@ function GoodEPGP:BuildAdminMenu()
         adminButton:SetCallback("OnClick", function()
             GoodEPGP[button.functionName]()
         end)
-        adminButton:SetDisabled(GoodEPGP[button.enableFunction]())
+        if (button.enableFunction ~= nil) then
+            adminButton:SetDisabled(GoodEPGP[button.enableFunction]())
+        end
 
         GoodEPGP.menuTabs:AddChild(adminButton)
     end

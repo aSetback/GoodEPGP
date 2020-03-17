@@ -2,7 +2,10 @@
 local AceGUI = LibStub("AceGUI-3.0")
 
 -- Class List
-local classList = {"All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid", "Priest", "Warlock", "Mage"}
+local classList = {
+    "All Classes", "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid",
+    "Priest", "Warlock", "Mage"
+}
 
 -- Role List
 local roleList = {"All Roles", "Tank", "Healer", "Caster", "Melee"}
@@ -11,13 +14,13 @@ local roleList = {"All Roles", "Tank", "Healer", "Caster", "Melee"}
 local validCombos = {
     ["Tank"] = {
         {["class"] = "Warrior", ["spec"] = "Protection"},
-        {["class"] = "Druid", ["spec"] = "Feral"},
+        {["class"] = "Druid", ["spec"] = "Feral"}
     },
     ["Healer"] = {
         {["class"] = "Priest", ["spec"] = "Holy"},
         {["class"] = "Priest", ["spec"] = "Discipline"},
         {["class"] = "Druid", ["spec"] = "Restoration"},
-        {["class"] = "Paladin", ["spec"] = "Holy"},
+        {["class"] = "Paladin", ["spec"] = "Holy"}
     },
     ["Caster"] = {
         {["class"] = "Priest", ["spec"] = "Shadow"},
@@ -27,7 +30,7 @@ local validCombos = {
         {["class"] = "Warlock", ["spec"] = "Demonology"},
         {["class"] = "Warlock", ["spec"] = "Affliction"},
         {["class"] = "Warlock", ["spec"] = "Destruction"},
-        {["class"] = "Druid", ["spec"] = "Balance"},
+        {["class"] = "Druid", ["spec"] = "Balance"}
     },
     ["Melee"] = {
         {["class"] = "Druid", ["spec"] = "Feral"},
@@ -35,7 +38,7 @@ local validCombos = {
         {["class"] = "Warrior", ["spec"] = "Fury"},
         {["class"] = "Rogue", ["spec"] = "Combat"},
         {["class"] = "Rogue", ["spec"] = "Subtlety"},
-        {["class"] = "Rogue", ["spec"] = "Assassination"},
+        {["class"] = "Rogue", ["spec"] = "Assassination"}
     }
 }
 
@@ -49,7 +52,7 @@ local classColors = {
     ["Rogue"] = {["r"] = 1.00, ["g"] = .96, ["b"] = .41},
     ["Shaman"] = {["r"] = .00, ["g"] = .44, ["b"] = .87},
     ["Warlock"] = {["r"] = .53, ["g"] = .53, ["b"] = .93},
-    ["Warrior"] = {["r"] = .78, ["g"] = .61, ["b"] = .43},
+    ["Warrior"] = {["r"] = .78, ["g"] = .61, ["b"] = .43}
 }
 
 -- Date format
@@ -60,21 +63,21 @@ function GoodEPGP:ToggleStandings()
     if (GoodEPGP.standingsFrame:IsVisible()) then
         GoodEPGP.standingsFrame:Hide()
     else
-		if (GoodEPGP.menuFrame:IsVisible()) then
-			GoodEPGP.menuFrame:Hide()
-		end
-		if (GoodEPGP.pricesFrame:IsVisible()) then
-			GoodEPGP:TogglePrices()
-		end
+        if (GoodEPGP.menuFrame:IsVisible()) then
+            GoodEPGP.menuFrame:Hide()
+        end
+        if (GoodEPGP.pricesFrame:IsVisible()) then
+            GoodEPGP:TogglePrices()
+        end
 
-		-- Clear all filters
-		GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
-		GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
-		GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
-		GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
+        -- Clear all filters
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
+        GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
+        GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
 
-		GoodEPGP:RequestStandings()
-		GoodEPGP.standingsFrame:Show()
+        GoodEPGP:RequestStandings()
+        GoodEPGP.standingsFrame:Show()
     end
 end
 
@@ -82,11 +85,11 @@ end
 function GoodEPGP:ReceiveStandings(text)
 
     -- Parse the broadcast
-    local broadcast = { strsplit(";", string.sub(text, 3)) }
+    local broadcast = {strsplit(";", string.sub(text, 3))}
     for key, standing in pairs(broadcast) do
         if (standing ~= "") then
             local player, class, spec, ep, gp, pr = strsplit(",", standing)
-            local pr = GoodEPGP:Round(ep/gp, 2)
+            local pr = GoodEPGP:Round(ep / gp, 2)
             local playerInfo = {
                 ["name"] = player,
                 ["class"] = class,
@@ -103,36 +106,37 @@ end
 -- Request standings
 function GoodEPGP:RequestStandings()
 
-	-- If Officer, intercept request and re-route locally
-	if (CanEditOfficerNote()) then
+    -- If Officer, intercept request and re-route locally
+    if (CanEditOfficerNote()) then
 
-		-- Debug info
-		local player = select(1, strsplit("-", UnitName("player")))
-		GoodEPGP:Debug("You're an Officer ".. player ..", getting standings...")
+        -- Debug info
+        local player = select(1, strsplit("-", UnitName("player")))
+        GoodEPGP:Debug("You're an Officer " .. player ..
+                           ", getting standings...")
 
-		-- Clear standings cache
-		GoodEPGPCachedStandings = {}
+        -- Clear standings cache
+        GoodEPGPCachedStandings = {}
 
-		-- Get standings from officer notes
-		for i = 1, GetNumGuildMembers() do
-			local name = GetGuildRosterInfo(i)
-			name = select(1, strsplit("-", name))
-			local member = GoodEPGP:GetGuildMemberByName(name)
+        -- Get standings from officer notes
+        for i = 1, GetNumGuildMembers() do
+            local name = GetGuildRosterInfo(i)
+            name = select(1, strsplit("-", name))
+            local member = GoodEPGP:GetGuildMemberByName(name)
             local playerInfo = {
                 ["name"] = member.name,
                 ["class"] = member.class,
                 ["spec"] = member.spec,
                 ["ep"] = member.ep,
                 ["gp"] = member.gp,
-                ["pr"] = GoodEPGP:Round(member.ep/member.gp, 2)
+                ["pr"] = GoodEPGP:Round(member.ep / member.gp, 2)
             };
-			 if (tonumber(playerInfo.ep) > 0) then
-				table.insert(GoodEPGPCachedStandings, playerInfo)
-			end
-		end
+            if (tonumber(playerInfo.ep) > 0) then
+                table.insert(GoodEPGPCachedStandings, playerInfo)
+            end
+        end
 
-		-- Stamp update
-		GoodEPGP:StandingsUpdateLastUpdated()
+        -- Stamp update
+        GoodEPGP:StandingsUpdateLastUpdated()
 
 		-- Over-ride previous sortOrder and force ASC
 		GoodEPGP.standingsFrame.sortOrder = "DESC"
@@ -155,7 +159,9 @@ end
 -- Update our last updated timestamp
 function GoodEPGP:StandingsUpdateLastUpdated()
     GoodEPGPConfig.standingsLastUpdated = GetServerTime()
-    GoodEPGP.standingsFrame:SetStatusText("Last Updated: " .. date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
+    GoodEPGP.standingsFrame:SetStatusText(
+        "Last Updated: " ..
+            date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
 end
 
 -- Create the EPGP standings frame
@@ -166,46 +172,60 @@ function GoodEPGP:CreateStandingsFrame()
 
         -- Create parent frame
         GoodEPGP.standingsFrame = AceGUI:Create("Frame")
-	    GoodEPGP.standingsFrame:SetTitle("GoodEPGP - Standings")
-        if (GoodEPGPConfig.standingsLastUpdated == 0)  then
+        GoodEPGP.standingsFrame:SetTitle("GoodEPGP - Standings")
+        if (GoodEPGPConfig.standingsLastUpdated == 0) then
             GoodEPGP.standingsFrame:SetStatusText("Last Updated: never")
         else
-            GoodEPGP.standingsFrame:SetStatusText("Last Updated: " .. date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
+            GoodEPGP.standingsFrame:SetStatusText(
+                "Last Updated: " ..
+                    date(dateFormat, GoodEPGPConfig.standingsLastUpdated))
         end
         GoodEPGP.standingsFrame:SetLayout("Flow")
         GoodEPGP.standingsFrame:EnableResize(false)
+
+		--[[
+		GoodEPGP.standingsFrame:SetCallback("OnClose", function()
+			-- Wipe the standingsLinesFrames and release all widgets (prevents memory bloat)
+			GoodEPGP.standingsScrollFrame:ReleaseChildren()
+			GoodEPGP.standingsLinesFrames = {}
+		end)
+		--]]
 
         -- Add class filter dropdown
         GoodEPGP.standingsFrame.classSelectDropdown = AceGUI:Create("Dropdown")
         GoodEPGP.standingsFrame.classSelectDropdown:SetLabel(" Class")
         GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
         GoodEPGP.standingsFrame.classSelectDropdown:SetList(classList)
-        GoodEPGP.standingsFrame.classSelectDropdown:SetCallback("OnValueChanged", function(widget)
-            local selectedClass = classList[widget:GetValue()];
-            GoodEPGP:StandingsFilter("class", selectedClass)
-        end)
-        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.classSelectDropdown)
+        GoodEPGP.standingsFrame.classSelectDropdown:SetCallback(
+            "OnValueChanged", function(widget)
+                local selectedClass = classList[widget:GetValue()];
+                GoodEPGP:StandingsFilter("class", selectedClass)
+            end)
+        GoodEPGP.standingsFrame:AddChild(
+            GoodEPGP.standingsFrame.classSelectDropdown)
 
-		-- Add role filter dropdown
+        -- Add role filter dropdown
         GoodEPGP.standingsFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel(" Role")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetList(roleList)
-        GoodEPGP.standingsFrame.roleSelectDropdown:SetCallback("OnValueChanged", function(widget)
+        GoodEPGP.standingsFrame.roleSelectDropdown:SetCallback("OnValueChanged",
+                                                               function(widget)
             local selectedRole = roleList[widget:GetValue()];
             GoodEPGP:StandingsFilter("role", selectedRole)
         end)
-        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.roleSelectDropdown)
+        GoodEPGP.standingsFrame:AddChild(
+            GoodEPGP.standingsFrame.roleSelectDropdown)
 
-		-- Add a blank spacer to force a new line
-		GoodEPGP.standingsFrame.blankSpacer = AceGUI:Create("Label")
-		GoodEPGP.standingsFrame.blankSpacer:SetFullWidth(true)
-		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
+        -- Add a blank spacer to force a new line
+        GoodEPGP.standingsFrame.blankSpacer = AceGUI:Create("Label")
+        GoodEPGP.standingsFrame.blankSpacer:SetFullWidth(true)
+        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
 
-		-- Add 4px left side padding for the headers
-		GoodEPGP.standingsFrame.padding = AceGUI:Create("Label")
-		GoodEPGP.standingsFrame.padding:SetWidth(4)
-		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.padding)
+        -- Add 4px left side padding for the headers
+        GoodEPGP.standingsFrame.padding = AceGUI:Create("Label")
+        GoodEPGP.standingsFrame.padding:SetWidth(4)
+        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.padding)
 
         -- Generate table headers
         local headers = {
@@ -213,7 +233,7 @@ function GoodEPGP:CreateStandingsFrame()
             {["label"] = "Class", ["width"] = 150, ["sortColumn"] = "class"},
             {["label"] = "EP", ["width"] = 80, ["sortColumn"] = "ep"},
             {["label"] = "GP", ["width"] = 80, ["sortColumn"] = "gp"},
-            {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"},
+            {["label"] = "Priority", ["width"] = 80, ["sortColumn"] = "pr"}
         }
 
         -- Add headers and set sorting function
@@ -232,20 +252,18 @@ function GoodEPGP:CreateStandingsFrame()
 		GoodEPGP.standingsScrollFrame:ClearAllPoints()
 		GoodEPGP.standingsScrollFrame:SetPoint("TOP", GoodEPGP.standingsScrollContainer.frame, "TOP", 0, -4)
 		GoodEPGP.standingsScrollFrame:SetPoint("BOTTOM", 0, 4)
-		GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
 
         -- Hide our standings frame
         GoodEPGP.standingsFrame:Hide()
 
-		-- Allows closing while hitting ESC
-		_G["GoodEPGP_Standings"] = GoodEPGP.standingsFrame
-		table.insert(UISpecialFrames, "GoodEPGP_Standings")
+        -- Allows closing while hitting ESC
+        _G["GoodEPGP_Standings"] = GoodEPGP.standingsFrame
+        table.insert(UISpecialFrames, "GoodEPGP_Standings")
     end
 end
 
 -- Load standings from our cache
 function GoodEPGP:LoadAllStandings()
-
 	-- Clear all filters
 	GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
 	GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
@@ -256,6 +274,9 @@ function GoodEPGP:LoadAllStandings()
 	for key, player in pairs(GoodEPGPCachedStandings) do
 		GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
 	end
+
+	-- Add standings scroll frame to scroll container
+	GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
 end
 
 -- Display header line
@@ -264,7 +285,7 @@ function GoodEPGP:AddHeaderLine(headers, frame, sortFunction)
     for key, values in pairs(headers) do
         local headerLabel = AceGUI:Create("InteractiveLabel")
         headerLabel:SetWidth(values.width)
-		headerLabel:SetText(values.label)
+        headerLabel:SetText(values.label)
 
         -- Add our sorting event on click
         headerLabel:SetCallback("OnClick", function()
@@ -306,7 +327,7 @@ function GoodEPGP:StandingsSort(sortColumn)
     -- Custom sort function
     table.sort(GoodEPGPCachedStandings, function(a, b)
 
-		-- If column data is a number then convert raw text to number
+        -- If column data is a number then convert raw text to number
         if (numeric) then
             a[sortColumn] = tonumber(a[sortColumn])
             b[sortColumn] = tonumber(b[sortColumn])
@@ -315,7 +336,7 @@ function GoodEPGP:StandingsSort(sortColumn)
             local b = b[sortColumn]
         end
 
-		-- Sort column Ascending or Descending
+        -- Sort column Ascending or Descending
         if (sortOrder == "ASC") then
             return b[sortColumn] > a[sortColumn]
         else
@@ -323,36 +344,33 @@ function GoodEPGP:StandingsSort(sortColumn)
         end
     end)
 
-	-- Check filter state and load accordingly
-	local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
-	local selectedRole = roleList[GoodEPGP.standingsFrame.roleSelectDropdown:GetValue()]
+    -- Check filter state and load accordingly
+    local selectedClass =
+        classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
+    local selectedRole =
+        roleList[GoodEPGP.standingsFrame.roleSelectDropdown:GetValue()]
     if (selectedClass ~= nil) then
         GoodEPGP:StandingsFilter("class", selectedClass)
-	elseif (selectedRole ~= nil) then
-		GoodEPGP:StandingsFilter("role", selectedRole)
-	else
-		GoodEPGP:LoadAllStandings()
-	end
+    elseif (selectedRole ~= nil) then
+        GoodEPGP:StandingsFilter("role", selectedRole)
+    else
+        GoodEPGP:LoadAllStandings()
+    end
 end
 
 -- Filter the EPGP standings
 function GoodEPGP:StandingsFilter(type, filterValue)
+
+	-- Wipe the standingsLinesFrames and release all widgets (prevents memory bloat)
+	GoodEPGP.standingsScrollFrame:ReleaseChildren()
+	GoodEPGP.standingsLinesFrames = {}
 
 	-- If filters aren't set then load all standings
 	if (filterValue == "All Roles" or filterValue == "All Classes") then
 		GoodEPGP:LoadAllStandings()
 	else
 
-		-- Hide all standingsLinesFrames
-		for key, standingsLine in pairs(GoodEPGP.standingsLinesFrames) do
-			for fieldKey, field in pairs(standingsLine) do
-				if (fieldKey ~= "group") then
-					GoodEPGP.standingsLinesFrames[key]["group"].frame:Hide()
-				end
-			end
-		end
-
-		-- Go through our standings and display standingsLinesFrames by role
+		-- Go through our standings and display lines by role
 		if (type == "role") then
 			GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
 			local counter = 1
@@ -367,7 +385,7 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 			end
 		end
 
-		-- Go through our standings and display standingsLinesFrames by class
+		-- Go through our standings and display lines by class
 		if (type == "class") then
 			GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
 			local counter = 1
@@ -378,6 +396,9 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 				end
 			end
 		end
+
+		-- Add standings scroll frame to scroll container
+		GoodEPGP.standingsScrollContainer:AddChild(GoodEPGP.standingsScrollFrame)
 	end
 end
 
@@ -393,9 +414,8 @@ function GoodEPGP:AddStandingLine(player, frame, index)
     local fields = {
         {["field"] = "name", ["width"] = 196},
         {["field"] = "class", ["width"] = 150},
-        {["field"] = "ep", ["width"] = 80},
-        {["field"] = "gp", ["width"] = 80},
-        {["field"] = "pr", ["width"] = 80},
+        {["field"] = "ep", ["width"] = 80}, {["field"] = "gp", ["width"] = 80},
+        {["field"] = "pr", ["width"] = 80}
     }
 
     -- Get our player's class color
@@ -407,7 +427,7 @@ function GoodEPGP:AddStandingLine(player, frame, index)
         local standingLine = GoodEPGP.standingsLinesFrames[index]
 		standingLine["group"].frame:Show()
 
-		-- Loop through each of the fields in our line and update the text of the frame... if applicable
+        -- Loop through each of the fields in our line and update the text of the frame... if applicable
         for key, field in pairs(fields) do
             local standingLabel = standingLine[field.field]
             if (field.field == "class" or field.field == "name") then
@@ -417,7 +437,7 @@ function GoodEPGP:AddStandingLine(player, frame, index)
         end
     else
 
-		-- Our frames didn't already exist - create group
+        -- Our frames didn't already exist - create group
         local standingLine = {};
         labelGroup = AceGUI:Create("SimpleGroup")
         labelGroup:SetLayout("Flow")
@@ -428,7 +448,7 @@ function GoodEPGP:AddStandingLine(player, frame, index)
         standingsPadding:SetWidth(4)
         labelGroup:AddChild(standingsPadding)
 
-		-- Create label
+        -- Create label
         for key, field in pairs(fields) do
             label = AceGUI:Create("Label")
             if (field.field == "class" or field.field == "name") then
@@ -437,33 +457,35 @@ function GoodEPGP:AddStandingLine(player, frame, index)
 
             -- Set label attributes
             label:SetWidth(field.width)
-			label:SetText(player[field.field])
-			label:SetHeight(14)
+            label:SetText(player[field.field])
+            label:SetHeight(14)
 
-			-- Add label to label group
-			labelGroup:AddChild(label)
+            -- Add label to label group
+            labelGroup:AddChild(label)
 
             -- Add the new label frame to the standingLine table for re-use later
             standingLine[field.field] = label
         end
 
-		-- Add label group to standingsScrollFrame
+        -- Add label group to standingsScrollFrame
         frame:AddChild(labelGroup)
 
-		-- Set a quick alias
+        -- Set a quick alias
         standingLine["group"] = labelGroup
 
         -- Add our new standingLine table to the standingsLinesFrames table for later use
         GoodEPGP.standingsLinesFrames[index] = standingLine
 
-		-- Set the initial background color on all lines
-		standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-		standingLine["group"].frame:SetBackdropColor(0, 0, 0, 1)
+        -- Set the initial background color on all lines
+        standingLine["group"].frame:SetBackdrop(
+            {bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        standingLine["group"].frame:SetBackdropColor(0, 0, 0, 1)
 
-		-- Add contrasting background to every other line
+        -- Add contrasting background to every other line
         if (index % 2 == 1) then
-		else
-			standingLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+        else
+            standingLine["group"].frame:SetBackdrop(
+                {bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
             standingLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
         end
     end
@@ -487,7 +509,9 @@ function GoodEPGP:SendStandings(requestor)
     local broadcast = ""
     for key, player in pairs(standings) do
         if (tonumber(player.ep) > 0) then
-            broadcast = broadcast .. player.name .. "," .. player.class .. "," .. player.spec .. "," .. player.ep .. "," .. player.gp .. ";"
+            broadcast =
+                broadcast .. player.name .. "," .. player.class .. "," ..
+                    player.spec .. "," .. player.ep .. "," .. player.gp .. ";"
             -- Our string is approaching the 255 character limit.  Let's send it and start a new one.
             if (string.len(broadcast) > 200) then
                 GoodEPGP:AddonMessage("S:" .. broadcast, requestor)
@@ -508,27 +532,22 @@ end
 -- Broadcast item award to all players with the add-on
 function GoodEPGP:BroadcastAward(player, item, price)
     GoodEPGP:AddonMessage("Award:" .. player .. ":" .. item .. ":" .. price)
-    GoodEPGP:WidestAudience("Awarded " .. item .. " to " .. player .. " for " .. price .. " GP.")
+    GoodEPGP:WidestAudience("Awarded " .. item .. " to " .. player .. " for " ..
+                                price .. " GP.")
 end
 
 -- Show standings by class, with a minimum priority (1 by default)
 function GoodEPGP:ShowStandingsByClass(class, minimumPrio, type, playerName)
     -- Make sure we have a class
-    if (class == nil) then
-        return nil
-    end
+    if (class == nil) then return nil end
 
     -- Retrieve our standings by class(es)
     local classStandings = GoodEPGP:GetStandingsByClass(class:lower())
-    if (classStandings == nil or #classStandings == 0) then
-        return
-    end
+    if (classStandings == nil or #classStandings == 0) then return end
 
     -- Check if minimum is set and numeric
     minimumPrio = tonumber(minimumPrio)
-    if (minimumPrio == nil) then
-        minimumPrio = .1
-    end
+    if (minimumPrio == nil) then minimumPrio = .1 end
 
     -- Loop through our classStandings table and show every line above minimum prio
     for key, memberInfo in pairs(classStandings) do
@@ -541,9 +560,7 @@ end
 -- Get EPGP standings by class/classes
 function GoodEPGP:GetStandingsByClass(class)
     -- Make sure we have a class
-    if (class == nil) then
-        return nil
-    end
+    if (class == nil) then return nil end
 
     local classes = nil
     if (string.find(class, ",") ~= nil) then
@@ -555,9 +572,7 @@ function GoodEPGP:GetStandingsByClass(class)
         local name = GetGuildRosterInfo(i)
         name = select(1, strsplit("-", name))
         local member = GoodEPGP:GetGuildMemberByName(name)
-        if (member == nil) then
-            return classStandings
-        end
+        if (member == nil) then return classStandings end
         if (classes ~= nil) then
             for classKey, className in pairs(classes) do
                 if (member.class == GoodEPGP:UCFirst(className)) then
@@ -570,8 +585,6 @@ function GoodEPGP:GetStandingsByClass(class)
             end
         end
     end
-    table.sort(classStandings, function(a, b)
-        return a.pr > b.pr
-    end)
+    table.sort(classStandings, function(a, b) return a.pr > b.pr end)
     return classStandings
 end
