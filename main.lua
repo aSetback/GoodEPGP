@@ -116,7 +116,7 @@ function GoodEPGP:OnEnable()
     GoodEPGP:LoadAllStandings()
 
     -- Load the prices table
-    GoodEPGP:LoadAllPrices(GoodEPGPphase)
+    GoodEPGP:LoadAllPrices()
 
     -- Add the tabs to the menu frame
     GoodEPGP:CreateMenuTabs()
