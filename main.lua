@@ -1,4 +1,4 @@
-GoodEPGP = LibStub("AceAddon-3.0"):NewAddon("GoodEPGP", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+GoodEPGP = LibStub("AceAddon-3.0"):NewAddon("GoodEPGP", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceTimer-3.0")
 
 -- Add our slash commands
 SLASH_GEP1, SLASH_GEP2 = "/goodepgp", "/gep"
@@ -116,7 +116,7 @@ function GoodEPGP:OnEnable()
     GoodEPGP:LoadAllStandings()
 
     -- Load the prices table
-    GoodEPGP:LoadAllPrices(GoodEPGPphase)
+    GoodEPGP:LoadAllPrices()
 
     -- Add the tabs to the menu frame
     GoodEPGP:CreateMenuTabs()
@@ -143,7 +143,7 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
 
         if (text == "standingsAvailable") then
             if (GoodEPGP.requestStandings) then
-                GoodEPGP.requestStandings = false
+				GoodEPGP.requestStandings = false
 				GoodEPGPCachedStandings = {}
                 GoodEPGP:Debug("Requesting standings from " .. player)
                 GoodEPGP:AddonMessage("getStandings", player)
@@ -169,6 +169,7 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
 
 		-- Set Player Spec Messages
 		if (text == "requestSetSpecialization") then
+			GoodEPGP:Debug("setSpecialization requested by "..player)
 			GoodEPGP:RequestSetSpec(player)
 		end
 
@@ -181,8 +182,10 @@ function GoodEPGP:CHAT_MSG_ADDON(_, prefix, text, channel, sender)
 		end
 
 		if (text:find("setSpecialization:")) then
+			GoodEPGP:Debug("setSpecialization request recieved from "..player)
 			local spec = select(2, strsplit(":", text))
 			GoodEPGP:SetSpec(player, spec)
+			GoodEPGP:Debug("setSpecialization request for "..player.." set to spec "..spec)
 		end
     end
 end
@@ -502,6 +505,20 @@ function GoodEPGP:GetItemID(itemString)
     return itemID
 end
 
+function GoodEPGP:GetGuildRoster()
+    local guildRoster = {};
+    for i = 1, GetNumGuildMembers() do
+        local player = select(1, GetGuildRosterInfo(i))
+        -- Remove realm name
+        player = select(1, strsplit("-", player))
+        table.insert(guildRoster, player)
+    end
+
+    table.sort(guildRoster)
+
+    return guildRoster
+end
+
 -- Retrieve the current guild roster
 function GoodEPGP:ExportGuildRoster()
     GoodEPGP.standings = {};
@@ -704,28 +721,184 @@ function GoodEPGP:GetMembersGuildIndex(player)
 	end
 end
 
--- Set a player's spec
-function GoodEPGP:SetSpec(player, spec)
-	local player = select(1, strsplit("-", player))
-    local index = GoodEPGP:GetMembersGuildIndex(player)
-	local class = select(5, GetGuildRosterInfo(index))
-	-- TODO: create a clean up routine to validate member notes
-		-- Main Toon: [Specialization]
-		-- Alt Toon: [Specialization]:[Main Toon Name]
-	local note = select(7, GetGuildRosterInfo(index))
-	local spec = GoodEPGP:UCFirst(spec) -- edge case to catch cmd line input laziness
-	local validSpec = GoodEPGP:ValidSpecsByClass(class, spec)
+--------------------------------------------------------------------------------------------------
+-- Set a player's spec. This assumes that your guild is using the following format for their Guild
+-- Notes. This format is also compatible with and recommended for the Discord Bot named GoodBot.
 
-	if validSpec then
-		-- We're an officer
+-- '[Player Spec]:Main' <-- For Main Characters
+-- '[Player Spec]:[Players Main Name]' <-- For Alt Characters
+-----------------------------------------------------------
+function GoodEPGP:SetSpec(player, spec, confirm)
+	local spec = GoodEPGP:UCFirst(spec)
+
+	-- Confirm that the spec was set
+	if (confirm == true) then
+
+		-- Waits 2 seconds then sends request back into confirmation stack for final step
+		if (GoodEPGP.requestSetSpec == true) then
+			GoodEPGP:ScheduleTimer("SetSpec", 2, nil, spec, false, GoodEPGP)
+			GoodEPGP:Debug("setSpecialization request processing...")
+			return
+		end
+	elseif (confirm == false) then
+
+		-- Officer was online, or self was Officer -> spec set successfully
+		if (GoodEPGP.requestSetSpec ~= true) then
+			GoodEPGP.menuFrame:SetStatusText("|cff228B22Spec changed successfully to: "..spec.."|r")
+			GoodEPGP:Debug("setSpecialization request successful...")
+			return
+		end
+
+		-- We have not recieved an answer to our request -> no Officers online
+		if (GoodEPGP.requestSetSpec == true) then
+			GoodEPGP.menuFrame:SetStatusText("|cff8b0000Spec change failed - no officers online|r")
+			GoodEPGP:Debug("setSpecialization request failed. No officers online...")
+			return
+		end
+	end
+
+	-- GoodEPGP:UCFirst() useage: edge case to catch manual input laziness
+	GoodEPGP.requestSetSpec = false
+	local player = GoodEPGP:UCFirst(select(1, strsplit("-", player)))
+    local index = GoodEPGP:GetMembersGuildIndex(player)
+	local rank = select(2, GetGuildRosterInfo(index))
+	local class = select(5, GetGuildRosterInfo(index))
+	local gMemNote = select(7, GetGuildRosterInfo(index))
+	local gMemSpec = GoodEPGP:UCFirst(select(1, strsplit(":", gMemNote)))
+	local gMemName = GoodEPGP:UCFirst(select(2, strsplit(":", gMemNote)))
+	local oldMemSpec = GoodEPGP:ValidSpecsByClass(class, gMemSpec)
+	local oldMemName = (GoodEPGP:GetMembersGuildIndex(gMemNote) ~= nil) and (GoodEPGP:GetMembersGuildIndex(gMemNote) > 0)
+
+	------------------------------------
+	-- New Guild Note format Logic stack
+	------------------------------------
+
+	-- Is the spec a valid spec?
+	if gMemSpec and GoodEPGP:ValidSpecsByClass(class, gMemSpec) then
+		local validGmemSpec = gMemSpec
+	end
+
+	-- Is the name an actual member of the guild or just a "Main" tag?
+	if gMemName and (((GoodEPGP:GetMembersGuildIndex(gMemName) ~= nil) and (GoodEPGP:GetMembersGuildIndex(gMemName) > 0)) or (gMemName == "Main")) then
+		local validGmemName = gMemName
+	end
+
+	-- We found a note in the new format
+	if validGmemSpec and validGmemName and spec ~= gMemSpec then
 		if (CanEditOfficerNote()) then
-			GuildRosterSetPublicNote(index, spec)
+
+			-- Form the new note with the modified spec
+			local nSpec = spec..":"..gMemName
+			GuildRosterSetPublicNote(index, nSpec)
+			GoodEPGP:SetSpec(nil, spec, false)
 
 		-- Not an officer - send request
 		else
 			GoodEPGP:AddonMessage("requestSetSpecialization")
 			GoodEPGP.requestSetSpec = true
 			GoodEPGP.tempReqSpec = spec
+			GoodEPGP:SetSpec(nil, spec, true)
+		end
+
+	-----------------------------------------------------------------------------------------------
+	-- Old Guild Note format logic stack --> New Guild Note format. Will also clean up after
+	-- Officers who don't manually set the Guild Note correctly. At some point one can comment out
+	-- this code or keep it. All the code above this section will not work or error unless the new
+	-- format is used for the character that this function is being run against.
+	-- TODO: Maybe turn this into an option in the Admin Panel?
+	-----------------------------------------------------------------------------------------------
+
+	-- All we found is a valid spec (old format)
+	elseif oldMemSpec and oldMemSpec ~= spec then
+		if (CanEditOfficerNote()) then
+
+			-- Look for the Alt rank and tag it
+			if (rank:find("Alt") or rank:find(" Alt")) then
+				local nSpec = spec..":Alt(Find Main please)"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+
+			-- Assume its a "Main"
+			else
+				local nSpec = spec..":Main"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+			end
+
+		-- Not an officer - send request
+		else
+			GoodEPGP:AddonMessage("requestSetSpecialization")
+			GoodEPGP.requestSetSpec = true
+			GoodEPGP.tempReqSpec = spec
+			GoodEPGP:SetSpec(nil, spec, true)
+		end
+
+	-- All we found is a valid name of a memeber in the guild (old format)
+	elseif oldMemName then
+		if (CanEditOfficerNote()) then
+
+			-- We assume this name is the Mains name
+			local nSpec = spec..":"..oldMemName
+			GuildRosterSetPublicNote(index, nSpec)
+			GoodEPGP:SetSpec(nil, spec, false)
+
+		-- Not an officer - send request
+		else
+			GoodEPGP:AddonMessage("requestSetSpecialization")
+			GoodEPGP.requestSetSpec = true
+			GoodEPGP.tempReqSpec = spec
+			GoodEPGP:SetSpec(nil, spec, true)
+		end
+
+	-- We found a Guild Note that doesn't match anything
+	elseif (oldMemName == false or oldMemSpec == false) then
+		if (CanEditOfficerNote()) then
+
+			-- Look for the Alt rank and tag it
+			if (rank:find("Alt") or rank:find(" Alt")) then
+				local nSpec = spec..":Alt(Find Main please)"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+
+			-- Assume its a "Main"
+			else
+				local nSpec = spec..":Main"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+			end
+
+		-- Not an officer - send request
+		else
+			GoodEPGP:AddonMessage("requestSetSpecialization")
+			GoodEPGP.requestSetSpec = true
+			GoodEPGP.tempReqSpec = spec
+			GoodEPGP:SetSpec(nil, spec, true)
+		end
+	-----------------------------------------------------------------------------------------------
+
+	-- We found a blank Guild Note
+	elseif (#gMemNote == 0) then
+		if (CanEditOfficerNote()) then
+
+			-- Look for the Alt rank and tag it
+			if (rank:find("Alt") or rank:find(" Alt")) then
+				local nSpec = spec..":Alt(Find Main please)"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+
+			-- Assume its a "Main"
+			else
+				local nSpec = spec..":Main"
+				GuildRosterSetPublicNote(index, nSpec)
+				GoodEPGP:SetSpec(nil, spec, false)
+			end
+
+		-- Not an officer - send request
+		else
+			GoodEPGP:AddonMessage("requestSetSpecialization")
+			GoodEPGP.requestSetSpec = true
+			GoodEPGP.tempReqSpec = spec
+			GoodEPGP:SetSpec(nil, spec, true)
 		end
 	end
 end
@@ -784,7 +957,7 @@ end
 
 -- Reset EPGP of all members
 function GoodEPGP:Reset()
-    -- Loop through guild roster, decay all members
+    -- Loop through guild roster, reset all members
     for i = 1, GetNumGuildMembers() do
         local guildName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
         local ep = 0
@@ -820,7 +993,8 @@ function GoodEPGP:Decay()
     end
 
     local decayPercent = GoodEPGP:Round(GoodEPGP.config.decayPercent * 100, 0) .. '%.'
-    GoodEPGP:Debug("EP & GP have been decayed by " .. decayPercent)
+
+    GoodEPGP:SendGuild("EP & GP have been decayed by " .. decayPercent)
 end
 
 -- Round all player's EP & GP to 2 decimal places
@@ -1029,7 +1203,11 @@ end
 -- Debug!
 function GoodEPGP:Debug(message)
     if (GoodEPGP.config.debugEnabled == true) then
-        self:Print("DEBUG: " .. message)
+        if (message == nil) then
+            self:Print("DEBUG: nil")
+        else
+            self:Print("DEBUG: " .. message)
+        end
     end
 end
 
