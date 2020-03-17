@@ -1039,7 +1039,6 @@ function GoodEPGP:LoadPhase(phase)
 
 	-- Go through our standings and display them by phase
 	if (phase ~= nil and phase ~= "All Phases") then
-		GoodEPGP:Debug("LoadPhase("..phase..")")
 		local counter = 1
 		for key, item in pairs(GoodEPGPCachedPrices) do
 			if item.itemPhase == phase then
@@ -1048,7 +1047,6 @@ function GoodEPGP:LoadPhase(phase)
 			end
 		end
 	else
-		GoodEPGP:Debug("LoadPhase(All Phases)")
 		GoodEPGP:LoadAllPrices()
 	end
 end

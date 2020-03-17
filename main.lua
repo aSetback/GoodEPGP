@@ -619,23 +619,30 @@ end
 
 -- Add EP to a player by their name
 function GoodEPGP:AddEPByName(name, amount)
-    name = GoodEPGP:UCFirst(name)
-    message = "Adding " .. amount .. " EP to " .. name .. ".";
-    if (amount == nil) then
-        amount = 0
-    end
-    GoodEPGP:Debug(message)
-    SendChatMessage(message, "GUILD")
-    GoodEPGP:SetEPGPByName(name, nil, nil, amount, nil)
+	if name then
+	    if (amount == nil) then
+			amount = 0
+		end
+	    name = GoodEPGP:UCFirst(name)
+		message = "Adding " .. amount .. " EP to " .. name .. ".";
+		GoodEPGP:Debug(message)
+		SendChatMessage(message, "GUILD")
+		GoodEPGP:SetEPGPByName(name, nil, nil, amount, nil)
+	end
 end
 
 -- Add GP to a player by their name
 function GoodEPGP:AddGPByName(name, amount)
-    name = GoodEPGP:UCFirst(name)
-    message = "Adding " .. amount .. " GP to " .. name .. "."
-    GoodEPGP:Debug(message)
-    SendChatMessage(message, "GUILD")
-    GoodEPGP:SetEPGPByName(name, nil, nil, nil, amount)
+	if name then
+	    if (amount == nil) then
+			amount = 0
+		end
+		name = GoodEPGP:UCFirst(name)
+		message = "Adding " .. amount .. " GP to " .. name .. "."
+		GoodEPGP:Debug(message)
+		SendChatMessage(message, "GUILD")
+		GoodEPGP:SetEPGPByName(name, nil, nil, nil, amount)
+	end
 end
 
 -- Set a player's EPGP by name (used on mass updates)
