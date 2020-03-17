@@ -1203,7 +1203,11 @@ end
 -- Debug!
 function GoodEPGP:Debug(message)
     if (GoodEPGP.config.debugEnabled == true) then
-        self:Print("DEBUG: " .. message)
+        if (message == nil) then
+            self:Print("DEBUG: nil")
+        else
+            self:Print("DEBUG: " .. message)
+        end
     end
 end
 
