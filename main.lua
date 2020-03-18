@@ -43,7 +43,7 @@ function GoodEPGP:OnInitialize()
         ["text"] = "GoodEPGP",
         ["icon"] = "Interface\\Icons\\inv_hammer_05",
         ["OnTooltipShow"] = function(tooltip)
-            tooltip:SetText("GoodEPGP v1.2")
+            tooltip:SetText("GoodEPGP v1.2.3")
             tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
 			tooltip:AddLine("Shift+Left click to toggle prices", 1, 1, 1)
             tooltip:AddLine("Right click for menu", 1, 1, 1)
@@ -104,7 +104,6 @@ function GoodEPGP:OnEnable()
     self:RegisterEvent("CHAT_MSG_WHISPER")
     self:RegisterEvent("GUILD_ROSTER_UPDATE")
     self:RegisterEvent("CHAT_MSG_ADDON")
-
 
     -- Add bag click hooks
     GoodEPGP:BagClickHooks()
@@ -270,7 +269,7 @@ function GoodEPGP:PrivateCommands(commandMessage)
 
     -- Add EP to a player
     if (command == "ep") then
-        if (arg1 ~= "" and arg2 ~= "") then
+        if (arg1 ~= nil and arg2 ~= nil) then
             if (arg1:lower() == "raid") then
                 GoodEPGP:AddEPToRaid(arg2)
             elseif (arg1:lower() == "list") then
@@ -281,30 +280,20 @@ function GoodEPGP:PrivateCommands(commandMessage)
         end
     end
 
-    if (command == "menu") then
-        GoodEPGP:ToggleMenuFrame()
-    end
-
     -- Add GP to a player
     if (command == "gp") then
-        if (arg1 ~= "" and arg2 ~= "") then
+        if (arg1 ~= nil and arg2 ~= nil) then
             GoodEPGP:AddGPByName(arg1, arg2)
         end
     end
 
-    -- Decay EPGP standings
-    if (command == "decay") then
-        GoodEPGP:Decay()
+    if (command == "menu") then
+        GoodEPGP:ToggleMenuFrame()
     end
 
     -- Round all EP & GP
     if (command == "round") then
         GoodEPGP:RoundPoints()
-    end
-
-    -- Reset EPGP standings
-    if (command == "reset") then
-        GoodEPGP:Reset()
     end
 
     -- Charge a player for an item
@@ -330,7 +319,7 @@ end
 -- Handle public command parsing / routing
 function GoodEPGP:PublicCommands(commandMessage, playerName)
     if (commandMessage == "") then
-        return true
+        return
     end
     local command = select(1, strsplit(" ", commandMessage))
     local arg1 = select(2, strsplit(" ", commandMessage))
@@ -365,12 +354,6 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
         GoodEPGP:SetSpec(playerName, arg1)
         return
     end
-
-    -- None of the if statements triggered, let's assume they want an item lookup
-    GoodEPGP:ShowPrice(commandMessage, type, playerName)
-    GoodEPGP:PlayerInfo(commandMessage, type, playerName)
-    GoodEPGP:ShowStandingsByClass(commandMessage, 1, type, playerName)
-
 end
 
 -- =====================
@@ -533,37 +516,33 @@ function GoodEPGP:ExportGuildRoster()
         local class = select(5, GetGuildRosterInfo(i))
         local spec = select(7, GetGuildRosterInfo(i))
 
-        -- Set initial EPGP
-        if (officerNote == nil or string.find(officerNote, ",") == nil) then
-            officerNote = '0,100'
-            -- GoodEPGP:SetEPGPByName(player, 0, 100)
-        end
-
         -- Retrieve the player's EPGP
         local ep = select(1, strsplit(",", officerNote))
         local gp = select(2, strsplit(",", officerNote))
         ep = tonumber(ep)
         gp = tonumber(gp)
 
-        -- Round to 2 decimal places
-        ep = GoodEPGP:Round(ep, 2)
-        gp = GoodEPGP:Round(gp, 2)
+        if (ep ~= nil) then
+            -- Round to 2 decimal places
+            ep = GoodEPGP:Round(ep, 2)
+            gp = GoodEPGP:Round(gp, 2)
 
-        -- Just making sure ..
-        if (ep == nil) then
-            ep = 0
+            -- Just making sure ..
+            if (ep == nil) then
+                ep = 0
+            end
+
+            -- Make sure we're above the min GP.
+            if (gp == nil or gp < tonumber(GoodEPGP.config.minGP)) then
+                gp = tonumber(GoodEPGP.config.minGP)
+            end
+
+            -- Calculate our PR
+            local pr = GoodEPGP:Round(ep/gp, 2)
+
+            -- Add the player to our standings table
+            GoodEPGP.standings[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level}
         end
-
-        -- Make sure we're above the min GP.
-        if (gp == nil or gp < tonumber(GoodEPGP.config.minGP)) then
-            gp = tonumber(GoodEPGP.config.minGP)
-        end
-
-        -- Calculate our PR
-        local pr = GoodEPGP:Round(ep/gp, 2)
-
-        -- Add the player to our standings table
-        GoodEPGP.standings[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level}
     end
 
     table.sort(GoodEPGP.standings, function(a, b)
@@ -620,66 +599,95 @@ end
 -- Add EP to a player by their name
 function GoodEPGP:AddEPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
-    message = "Adding " .. amount .. " EP to " .. name .. ".";
     if (amount == nil) then
         amount = 0
     end
-    GoodEPGP:Debug(message)
-    SendChatMessage(message, "GUILD")
     GoodEPGP:SetEPGPByName(name, nil, nil, amount, nil)
 end
 
 -- Add GP to a player by their name
 function GoodEPGP:AddGPByName(name, amount)
     name = GoodEPGP:UCFirst(name)
-    message = "Adding " .. amount .. " GP to " .. name .. "."
-    GoodEPGP:Debug(message)
-    SendChatMessage(message, "GUILD")
+    if (amount == nil) then
+        amount = 0
+    end
     GoodEPGP:SetEPGPByName(name, nil, nil, nil, amount)
 end
 
 -- Set a player's EPGP by name (used on mass updates)
-function GoodEPGP:SetEPGPByName(player, ep, gp, addEp, addGp)
+function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
 
-    -- If our addEp or addGp params are set, add the amount before setting.
+    -- If our epAdded or gpAdded params are set, add the amount before setting.
     local index = GoodEPGP:GetMembersGuildIndex(player)
-    if (addEp ~= nil or addGp ~= nil) then
-		local name, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(index)
-		if (player == select(1, strsplit("-", name))) then
-			ep = select(1, strsplit(",", officerNote))
-			gp = select(2, strsplit(",", officerNote))
-			if (ep == nil or ep == "") then
-				ep = 0
-			end
-			if (gp == nil or gp == "") then
-				gp = GoodEPGP.config.minGP
-			end
+    
+    -- Verify the player is in the guild
+    if (index == nil) then
+        GoodEPGP:Debug(player .. " is not in the guild.  Skipping.")
+        return
+    end
 
-			if (addEp ~= nil) then
-				ep = tonumber(ep) + tonumber(addEp)
-			end
-			if (addGp ~= nil) then
-				gp = tonumber(gp) + tonumber(addGp)
-			end
-		end
+    -- Retrieve the player's information
+    local name, _, _, _, class, _, nozte, officerNote, _, _ = GetGuildRosterInfo(index)
+    local player = select(1, strsplit("-", name))
+
+    -- Retrieve the EP & GP values from the player's officer note
+    local epOriginal, gpOriginal = strsplit(",", officerNote)
+    
+    -- If the EP value is not set, or is a non-number, we're going to set it to 0
+    if (tonumber(epOriginal) == nil) then
+        epOriginal = 0
+    end
+    
+    -- If the GP value is not set, or is a non-number, we're going to set it to the minimum GP
+    if (tonumber(gpOriginal) == nil) then
+        gpOriginal = GoodEPGP.config.minGP
+    end
+
+    -- if epAdded or gpAdded is set, add the correct amount
+    if (epAdded ~= nil or gpAdded ~= nil) then
+        -- If the epAdded is set, add that amount of EP
+        epUpdated = tonumber(epOriginal)
+        if (epAdded ~= nil) then
+            epUpdated = epUpdated + tonumber(epAdded)
+        end 
+        
+        -- If gpAdded is set, add that amount of GP
+        gpUpdated = tonumber(GoodEPGP.config.minGP)
+        if (gpAdded ~= nil) then
+            gpUpdated = tonumber(gpOriginal) + tonumber(gpAdded)
+        end
     end
 
     -- Round our EP & GP
-    ep = GoodEPGP:Round(ep, 2)
-    gp = GoodEPGP:Round(gp, 2)
+    epUpdated = GoodEPGP:Round(epUpdated, 2)
+    gpUpdated = GoodEPGP:Round(gpUpdated, 2)
 
     -- Set the EPGP record
 	local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(index)
-	if (player == select(1, strsplit("-", name))) then
+    
+    -- Sanity check to make sure we have the right index
+    if (player == select(1, strsplit("-", name))) then
 		-- Format our officer note
-		local epgpString = tostring(ep) .. "," .. tostring(gp)
-
+        local originalString = tostring(epOriginal) .. "," .. tostring(gpOriginal)
+		local updatedString = tostring(epUpdated) .. "," .. tostring(gpUpdated)
 		-- Inform to console
-		GoodEPGP:Debug('Updated ' .. player .. ' to ' .. epgpString);
+		GoodEPGP:Debug("Updating " .. player .. ": " .. originalString .. " => " .. updatedString);
 
 		-- Update the officer note
-		GuildRosterSetOfficerNote(index, epgpString)
-	end
+		GuildRosterSetOfficerNote(index, updatedString)
+    end
+
+    local message = nil
+    if (epAdded ~= nil) then
+        message = "Adding " .. epAdded .. " EP to " .. player .. ".";
+    end
+    if (gpAdded ~= nil) then
+        message = "Adding " .. gpAdded .. " GP to " .. player .. ".";
+    end
+    if (message ~= nil) then
+        SendChatMessage(message, "GUILD")
+    end
+
 end
 
 function GoodEPGP:ValidSpecsByClass(playerClass, spec)

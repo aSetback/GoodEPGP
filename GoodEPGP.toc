@@ -1,7 +1,7 @@
 ## Interface: 11304
 ## Title: Good EPGP
-## Author: Taunt <Good>
-## Version: 1.2.2
+## Authors: Setback <Good> & Dyaxler <Good>
+## Version: 1.2.3
 ## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot, GoodEPGPCachedPrices
 ## SavedVariablesPerCharacter: GoodEPGPMiniMapPos, GoodEPGPCachedStandings
 ## OptionalDeps: Ace3
