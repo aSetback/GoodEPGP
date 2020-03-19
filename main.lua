@@ -504,21 +504,17 @@ end
 
 -- Retrieve the current guild roster
 function GoodEPGP:ExportGuildRoster()
-    GoodEPGP.standings = {};
+    GoodEPGP.guildStandings = {};
     for i = 1, GetNumGuildMembers() do
         -- Retrieve information about our player, remove the realm name
-        local player = select(1, GetGuildRosterInfo(i))
+        local player, _, _, level, class, _, spec, officerNote = GetGuildRosterInfo(i)
+
         if (player ~= nil) then
             player = select(1, strsplit("-", player))
         end
-        local officerNote  = select(8, GetGuildRosterInfo(i))
-        local level = select(4, GetGuildRosterInfo(i))
-        local class = select(5, GetGuildRosterInfo(i))
-        local spec = select(7, GetGuildRosterInfo(i))
 
         -- Retrieve the player's EPGP
-        local ep = select(1, strsplit(",", officerNote))
-        local gp = select(2, strsplit(",", officerNote))
+        local ep, gp = strsplit(",", officerNote)
         ep = tonumber(ep)
         gp = tonumber(gp)
 
@@ -539,19 +535,20 @@ function GoodEPGP:ExportGuildRoster()
 
             -- Calculate our PR
             local pr = GoodEPGP:Round(ep/gp, 2)
-
+        
             -- Add the player to our standings table
-            GoodEPGP.standings[i] = {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level}
+            table.insert(GoodEPGP.guildStandings, {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level})
         end
     end
 
-    table.sort(GoodEPGP.standings, function(a, b)
+    table.sort(GoodEPGP.guildStandings, function(a, b)
         return a.pr > b.pr
     end)
 
     local raiderList = {}
+
     -- Filter out people with no EP, less than lvl 55
-    for key, player in pairs(GoodEPGP.standings) do
+    for key, player in pairs(GoodEPGP.guildStandings) do
         if (tonumber(player.level) > 55 and tonumber(player.ep) > 0) then
             table.insert(raiderList, player)
         end
@@ -1211,6 +1208,7 @@ end
 -- Debug!
 function GoodEPGP:Debug(message)
     if (GoodEPGP.config.debugEnabled == true) then
+        message = tostring(message)
         if (message == nil) then
             self:Print("DEBUG: nil")
         else
