@@ -797,20 +797,20 @@ local validClassCombos = {
 	["Druid"] = { "Tank", "Healer", "Melee" },
 	["Priest"] = { "Healer", "Caster" },
 	["Warlock"] = { "Caster" },
-	["Mage"] = { "Caster" },
+	["Mage"] = { "Caster" }
 }
 
 -- Combo lists for role sorting
 local validCombos = {
     ["Tank"] = {
         {["class"] = "Warrior", ["spec"] = "Protection"},
-        {["class"] = "Druid", ["spec"] = "Feral"},
+        {["class"] = "Druid", ["spec"] = "Feral"}
     },
     ["Healer"] = {
         {["class"] = "Priest", ["spec"] = "Holy"},
         {["class"] = "Priest", ["spec"] = "Discipline"},
         {["class"] = "Druid", ["spec"] = "Restoration"},
-        {["class"] = "Paladin", ["spec"] = "Holy"},
+        {["class"] = "Paladin", ["spec"] = "Holy"}
     },
     ["Caster"] = {
         {["class"] = "Priest", ["spec"] = "Shadow"},
@@ -820,7 +820,7 @@ local validCombos = {
         {["class"] = "Warlock", ["spec"] = "Demonology"},
         {["class"] = "Warlock", ["spec"] = "Affliction"},
         {["class"] = "Warlock", ["spec"] = "Destruction"},
-        {["class"] = "Druid", ["spec"] = "Balance"},
+        {["class"] = "Druid", ["spec"] = "Balance"}
     },
     ["Melee"] = {
         {["class"] = "Druid", ["spec"] = "Feral"},
@@ -828,7 +828,7 @@ local validCombos = {
         {["class"] = "Warrior", ["spec"] = "Fury"},
         {["class"] = "Rogue", ["spec"] = "Combat"},
         {["class"] = "Rogue", ["spec"] = "Subtlety"},
-        {["class"] = "Rogue", ["spec"] = "Assassination"},
+        {["class"] = "Rogue", ["spec"] = "Assassination"}
     }
 }
 
@@ -886,7 +886,7 @@ function GoodEPGP:BuildPrices()
 					["itemOSprice"] = osprice,
 					["itemClass"] = class,
 					["itemSpec"] = spec,
-					["itemPhase"] = phase,
+					["itemPhase"] = phase
 				};
 				table.insert(GoodEPGPCachedPrices, priceInfo)
 			end)
@@ -912,7 +912,7 @@ function GoodEPGP:BuildPrices()
 				["itemOSprice"] = osprice,
 				["itemClass"] = class,
 				["itemSpec"] = spec,
-				["itemPhase"] = phase,
+				["itemPhase"] = phase
 			};
 			table.insert(GoodEPGPCachedPrices, priceInfo)
 		end
@@ -972,7 +972,7 @@ function GoodEPGP:CreatePricesFrame()
 		GoodEPGP.pricesFrame.blankSpacer:SetFullWidth(true)
 		GoodEPGP.pricesFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
 
-		-- Add 4px left side padding for the headers
+		-- Add 3px left side padding for the headers
 		GoodEPGP.pricesFrame.padding = AceGUI:Create("Label")
 		GoodEPGP.pricesFrame.padding:SetWidth(3)
 		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.padding)
@@ -981,7 +981,7 @@ function GoodEPGP:CreatePricesFrame()
 		local headers = {
 		  {["label"] = "Item", ["width"] = 300, ["sortColumn"] = "name"},
 		  {["label"] = "Main Spec", ["width"] = 100, ["sortColumn"] = "itemMSprice"},
-		  {["label"] = "Off Spec", ["width"] = 100, ["sortColumn"] = "itemOSprice"},
+		  {["label"] = "Off Spec", ["width"] = 100, ["sortColumn"] = "itemOSprice"}
 		}
 
 		-- Add headers and set sorting function
@@ -997,9 +997,6 @@ function GoodEPGP:CreatePricesFrame()
 		-- Create scrolling frame for prices list to go into with 4px padding
 		GoodEPGP.pricesScrollFrame = AceGUI:Create("ScrollFrame")
 		GoodEPGP.pricesScrollFrame:SetLayout("Flow")
-		GoodEPGP.pricesScrollFrame:ClearAllPoints()
-		GoodEPGP.pricesScrollFrame:SetPoint("TOP", GoodEPGP.pricesScrollContainer.frame, "TOP", 0, -4)
-		GoodEPGP.pricesScrollFrame:SetPoint("BOTTOM", 0, 4)
 		GoodEPGP.pricesScrollContainer:AddChild(GoodEPGP.pricesScrollFrame)
 
 		-- Hide the prices frame
@@ -1039,7 +1036,6 @@ function GoodEPGP:LoadPhase(phase)
 
 	-- Go through our standings and display them by phase
 	if (phase ~= nil and phase ~= "All Phases") then
-		GoodEPGP:Debug("LoadPhase("..phase..")")
 		local counter = 1
 		for key, item in pairs(GoodEPGPCachedPrices) do
 			if item.itemPhase == phase then
@@ -1048,14 +1044,12 @@ function GoodEPGP:LoadPhase(phase)
 			end
 		end
 	else
-		GoodEPGP:Debug("LoadPhase(All Phases)")
 		GoodEPGP:LoadAllPrices()
 	end
 end
 
 -- Create a single line of prices
 function GoodEPGP:AddPriceLine(item, frame, index)
-
 	-- Set up a table of pricesFrame lines
 	if (GoodEPGP.pricesLinesFrames == nil) then
 		GoodEPGP.pricesLinesFrames = {}
@@ -1065,13 +1059,16 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 	local fields = {
 		{["field"] = "itemLink", ["width"] = 300},
 		{["field"] = "itemMSprice", ["width"] = 100},
-		{["field"] = "itemOSprice", ["width"] = 100},
+		{["field"] = "itemOSprice", ["width"] = 100}
 	}
 
 	-- If the key for this index exists, modify it with possible changes to prices and icons. Usually triggered by sorting.
 	if (GoodEPGP.pricesLinesFrames[index]) then
 		local pricesLine = GoodEPGP.pricesLinesFrames[index]
+
 		pricesLine["group"].frame:Show()
+
+		-- Loop through each of the fields in our line and update them... if applicable
 		for key, field in pairs(fields) do
 			local pricesLabel = pricesLine[field.field]
 
@@ -1096,11 +1093,27 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 				-- Add icons to changed prices list
 				local itemIcon = tonumber(item.itemIcon)
 				pricesLabel:SetImage(itemIcon)
+
+				-- Center and Justify Icon
+				pricesLabel:ClearAllPoints()
+				pricesLabel.frame:SetPoint("TOPLEFT", 4, -4)
 			end
 
 			-- Add text to changed prices list
 			pricesLabel:SetText(item[field.field])
 		end
+
+		-- 2 px between header/status and top/bottom of scroll frame
+		GoodEPGP.pricesScrollFrame:ClearAllPoints()
+		GoodEPGP.pricesScrollFrame:SetPoint("TOP", GoodEPGP.pricesScrollContainer.frame, "TOP", 0, -2)
+		GoodEPGP.pricesScrollFrame:SetPoint("BOTTOM", 0, 2)
+
+		-- Add contrasting background to every other line
+        if (index % 2 == 1) then
+		else
+			pricesLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
+            pricesLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
+        end
 	else
 
 		-- Our frames didn't already exist - create group
@@ -1109,9 +1122,10 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 		labelGroup:SetLayout("Flow")
 		labelGroup:SetRelativeWidth(1)
 
-		-- Add 4px padding to label group (hacks!)
+		-- Add padding to label group to force a static height
 		pricesPadding = AceGUI:Create("Label")
-		pricesPadding:SetWidth(4)
+		pricesPadding:SetWidth(1)
+		pricesPadding:SetHeight(21)
 		labelGroup:AddChild(pricesPadding)
 
 		-- Create label
@@ -1137,12 +1151,12 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 				-- Add icons to prices list
 				local itemIcon = tonumber(item.itemIcon)
 				label:SetImage(itemIcon)
+
 			else
 				label = AceGUI:Create("Label")
 			end
 			label:SetWidth(field.width)
 			label:SetText(item[field.field])
-			label:SetHeight(14)
 
 			-- add label to label group
 			labelGroup:AddChild(label)
@@ -1163,13 +1177,6 @@ function GoodEPGP:AddPriceLine(item, frame, index)
 		-- Set the initial background color on all lines
 		pricesLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
 		pricesLine["group"].frame:SetBackdropColor(0, 0, 0, 1)
-
-		-- Add contrasting background to every other line
-        if (index % 2 == 1) then
-		else
-			pricesLine["group"].frame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background"})
-            pricesLine["group"].frame:SetBackdropColor(.2, .2, .2, .8)
-        end
 	end
 end
 

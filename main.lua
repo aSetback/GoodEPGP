@@ -924,6 +924,8 @@ function GoodEPGP:GetGuildMemberByName(name)
     else
         for i = 1, GetNumGuildMembers() do
             local playerName, _, _, _, class, _, note, officerNote, _, _ = GetGuildRosterInfo(i)
+			local note = select(1, strsplit(":", note))
+
             -- Strip the server name
             playerName = select(1, strsplit("-", playerName))
             if (playerName:lower() == name:lower()) then
