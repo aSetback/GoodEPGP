@@ -652,7 +652,7 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
         end 
         
         -- If gpAdded is set, add that amount of GP
-        gpUpdated = tonumber(GoodEPGP.config.minGP)
+        gpUpdated = tonumber(gpOriginal)
         if (gpAdded ~= nil) then
             gpUpdated = tonumber(gpOriginal) + tonumber(gpAdded)
         end
