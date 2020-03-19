@@ -43,7 +43,7 @@ function GoodEPGP:OnInitialize()
         ["text"] = "GoodEPGP",
         ["icon"] = "Interface\\Icons\\inv_hammer_05",
         ["OnTooltipShow"] = function(tooltip)
-            tooltip:SetText("GoodEPGP v1.2.3")
+            tooltip:SetText("GoodEPGP v1.2.4")
             tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
 			tooltip:AddLine("Shift+Left click to toggle prices", 1, 1, 1)
             tooltip:AddLine("Right click for menu", 1, 1, 1)
