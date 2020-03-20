@@ -180,6 +180,7 @@ function GoodEPGP:CreateStandingsFrame()
 
         -- Add class filter dropdown
         GoodEPGP.standingsFrame.classSelectDropdown = AceGUI:Create("Dropdown")
+		--GoodEPGP.standingsFrame.classSelectDropdown:SetWidth(180)
         GoodEPGP.standingsFrame.classSelectDropdown:SetLabel(" Class")
         GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
         GoodEPGP.standingsFrame.classSelectDropdown:SetList(classList)
@@ -191,6 +192,7 @@ function GoodEPGP:CreateStandingsFrame()
 
         -- Add role filter dropdown
         GoodEPGP.standingsFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
+		--GoodEPGP.standingsFrame.roleSelectDropdown:SetWidth(180)
         GoodEPGP.standingsFrame.roleSelectDropdown:SetLabel(" Role")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
         GoodEPGP.standingsFrame.roleSelectDropdown:SetList(roleList)
@@ -200,10 +202,26 @@ function GoodEPGP:CreateStandingsFrame()
         end)
         GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.roleSelectDropdown)
 
-        -- Add a blank spacer to force a new line
-        GoodEPGP.standingsFrame.blankSpacer = AceGUI:Create("Label")
-        GoodEPGP.standingsFrame.blankSpacer:SetFullWidth(true)
-        GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
+		-- Blank Buffer creates a gap between Role and Show Current Raid
+		GoodEPGP.standingsFrame.blankBuffer = AceGUI:Create("Label")
+		GoodEPGP.standingsFrame.blankBuffer:SetWidth(64)
+		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankBuffer)
+
+		-- Add Raid filter checkbox
+		GoodEPGP.standingsFrame.raidSelectCheckbox = AceGUI:Create("CheckBox")
+		GoodEPGP.standingsFrame.raidSelectCheckbox:SetLabel(" Show Current Raid")
+		GoodEPGP.standingsFrame.raidSelectCheckbox:SetValue(GoodEPGPStandingsFilter.raid)
+		GoodEPGP.standingsFrame.raidSelectCheckbox:SetCallback("OnValueChanged", function(widget)
+			GoodEPGPStandingsFilter.raid = widget:GetValue()
+			GoodEPGP:StandingsFilter("raid", GoodEPGPStandingsFilter.raid)
+		end)
+		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.raidSelectCheckbox)
+
+		-- Blank Spacer: this filles up the remaining space after the raid filter
+		-- allowing the padding to be appled to the headers on the next line.
+		GoodEPGP.standingsFrame.blankSpacer = AceGUI:Create("Label")
+		GoodEPGP.standingsFrame.blankSpacer:SetFullWidth(true)
+		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
 
         -- Add 3px left side padding for the headers
         GoodEPGP.standingsFrame.padding = AceGUI:Create("Label")
@@ -253,8 +271,39 @@ function GoodEPGP:LoadAllStandings()
 	GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
 
 	-- Go through our standings and display them
-	for key, player in pairs(GoodEPGPCachedStandings) do
-		GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
+	if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
+		GoodEPGP:LoadRaidFilter()
+	else
+		for key, player in pairs(GoodEPGPCachedStandings) do
+			GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
+		end
+	end
+end
+
+-- Load standings raid filter
+function GoodEPGP:LoadRaidFilter()
+
+	-- Clear all filters
+	GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
+	GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
+	GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
+	GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
+
+	-- Filter raid memebers
+	if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
+		local counter = 1
+		for i = 1, MAX_RAID_MEMBERS do
+			local name = select(1, GetRaidRosterInfo(i))
+			--local raider = select(1, strsplit("-", name))
+			for key, player in pairs(GoodEPGPCachedStandings) do
+				if name == player.name then
+					GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+					counter = counter + 1
+				end
+			end
+		end
+	else
+		GoodEPGP:LoadAllStandings()
 	end
 end
 
@@ -326,10 +375,13 @@ function GoodEPGP:StandingsSort(sortColumn)
     -- Check filter state and load accordingly
     local selectedClass = classList[GoodEPGP.standingsFrame.classSelectDropdown:GetValue()]
     local selectedRole = roleList[GoodEPGP.standingsFrame.roleSelectDropdown:GetValue()]
+	local selectedRaidFilter = GoodEPGPStandingsFilter.raid
     if (selectedClass ~= nil) then
 		GoodEPGP:StandingsFilter("class", selectedClass)
     elseif (selectedRole ~= nil) then
 		GoodEPGP:StandingsFilter("role", selectedRole)
+    elseif (selectedRaidFilter) then
+		GoodEPGP:StandingsFilter("raid", GoodEPGPStandingsFilter.raid)
     else
 		GoodEPGP:LoadAllStandings()
     end
@@ -338,8 +390,11 @@ end
 -- Filter the EPGP standings
 function GoodEPGP:StandingsFilter(type, filterValue)
 
+	-- Check Raid Filer
+	local selectedRaidFilter = GoodEPGPStandingsFilter.raid
+
 	-- If filters aren't set then load all standings
-	if (filterValue == "All Roles" or filterValue == "All Classes") then
+	if filterValue == "All Roles" or filterValue == "All Classes" then
 		GoodEPGP:LoadAllStandings()
 	else
 
@@ -352,16 +407,44 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 			end
 		end
 
+		-- Filter all memebers who aren't in the players raid
+		if (type == "raid") then
+			GoodEPGP:LoadRaidFilter()
+		end
+
 		-- Go through our standings and display standingsLinesFrames by role
 		if (type == "role") then
+
+			-- Clear classes filter
 			GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
+			GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
+
+			-- Filter roles
 			local counter = 1
 			local combos = validCombos[filterValue]
 			for key, player in pairs(GoodEPGPCachedStandings) do
-				for role, combo in pairs(combos) do
-					if (combo.class == player.class and combo.spec == player.spec) then
-						GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
-						counter = counter + 1
+
+				-- Filter raid
+				if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
+					for i = 1, MAX_RAID_MEMBERS do
+						local name = select(1, GetRaidRosterInfo(i))
+						if name == player.name then
+							for role, combo in pairs(combos) do
+								if (combo.class == player.class and combo.spec == player.spec) then
+									GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+									counter = counter + 1
+								end
+							end
+						end
+					end
+
+				-- Filter all
+				else
+					for role, combo in pairs(combos) do
+						if (combo.class == player.class and combo.spec == player.spec) then
+							GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+							counter = counter + 1
+						end
 					end
 				end
 			end
@@ -369,12 +452,33 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 
 		-- Go through our standings and display standingsLinesFrames by class
 		if (type == "class") then
+
+			-- Clear roles filter
 			GoodEPGP.standingsFrame.roleSelectDropdown:SetValue()
+			GoodEPGP.standingsFrame.roleSelectDropdown:SetText("All Roles")
+
+			-- Filter classes
 			local counter = 1
 			for key, player in pairs(GoodEPGPCachedStandings) do
-				if (player.class == filterValue) then
-					GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
-					counter = counter + 1
+
+				-- Filter raid
+				if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
+					for i = 1, MAX_RAID_MEMBERS do
+						local name = select(1, GetRaidRosterInfo(i))
+						if name == player.name then
+							if (player.class == filterValue) then
+								GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+								counter = counter + 1
+							end
+						end
+					end
+
+				-- Filter all
+				else
+					if (player.class == filterValue) then
+						GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
+						counter = counter + 1
+					end
 				end
 			end
 		end
