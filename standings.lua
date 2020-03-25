@@ -25,7 +25,7 @@ local validCombos = {
         {["class"] = "Mage", ["spec"] = "Fire"},
         {["class"] = "Mage", ["spec"] = "Arcane"},
         {["class"] = "Warlock", ["spec"] = "Demonology"},
-        {["class"] = "Warlock", ["spec"] = "`"},
+        {["class"] = "Warlock", ["spec"] = "Affliction"},
         {["class"] = "Warlock", ["spec"] = "Destruction"},
         {["class"] = "Druid", ["spec"] = "Balance"}
     },
