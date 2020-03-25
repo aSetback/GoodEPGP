@@ -850,7 +850,7 @@ function GoodEPGP:SetSpec(player, spec, confirm)
 		if (CanEditOfficerNote()) then
 
 			-- We assume this name is the Mains name
-			local nSpec = spec..":"..oldMemName
+			local nSpec = spec..":"..gMemNote
 			GuildRosterSetPublicNote(index, nSpec)
 			GoodEPGP:SetSpec(nil, spec, false)
 

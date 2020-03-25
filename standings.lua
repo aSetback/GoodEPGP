@@ -25,7 +25,7 @@ local validCombos = {
         {["class"] = "Mage", ["spec"] = "Fire"},
         {["class"] = "Mage", ["spec"] = "Arcane"},
         {["class"] = "Warlock", ["spec"] = "Demonology"},
-        {["class"] = "Warlock", ["spec"] = "Affliction"},
+        {["class"] = "Warlock", ["spec"] = "`"},
         {["class"] = "Warlock", ["spec"] = "Destruction"},
         {["class"] = "Druid", ["spec"] = "Balance"}
     },
@@ -213,7 +213,7 @@ function GoodEPGP:CreateStandingsFrame()
 		GoodEPGP.standingsFrame.raidSelectCheckbox:SetValue(GoodEPGPStandingsFilter.raid)
 		GoodEPGP.standingsFrame.raidSelectCheckbox:SetCallback("OnValueChanged", function(widget)
 			GoodEPGPStandingsFilter.raid = widget:GetValue()
-			GoodEPGP:StandingsFilter("raid", GoodEPGPStandingsFilter.raid)
+			GoodEPGP:StandingsFilter("raid")
 		end)
 		GoodEPGP.standingsFrame:AddChild(GoodEPGP.standingsFrame.raidSelectCheckbox)
 
@@ -270,10 +270,11 @@ function GoodEPGP:LoadAllStandings()
 	GoodEPGP.standingsFrame.classSelectDropdown:SetValue()
 	GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
 
-	-- Go through our standings and display them
+	-- We're in a raid send to LoadRaidFilter
 	if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
 		GoodEPGP:LoadRaidFilter()
 	else
+		-- Load all standings
 		for key, player in pairs(GoodEPGPCachedStandings) do
 			GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, key)
 		end
@@ -290,19 +291,21 @@ function GoodEPGP:LoadRaidFilter()
 	GoodEPGP.standingsFrame.classSelectDropdown:SetText("All Classes")
 
 	-- Filter raid memebers
-	if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
-		local counter = 1
-		for i = 1, MAX_RAID_MEMBERS do
-			local name = select(1, GetRaidRosterInfo(i))
-			--local raider = select(1, strsplit("-", name))
-			for key, player in pairs(GoodEPGPCachedStandings) do
-				if name == player.name then
+	local counter = 1
+	for key, player in pairs(GoodEPGPCachedStandings) do
+		if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
+			for i = 1, MAX_RAID_MEMBERS do
+				local name = select(1, GetRaidRosterInfo(i))
+				if player.name == name then
 					GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
 					counter = counter + 1
 				end
 			end
 		end
-	else
+	end
+
+	-- Not in a raid send to LoadAllStandings
+	if not (IsInRaid() and GoodEPGPStandingsFilter.raid) then
 		GoodEPGP:LoadAllStandings()
 	end
 end
@@ -381,7 +384,7 @@ function GoodEPGP:StandingsSort(sortColumn)
     elseif (selectedRole ~= nil) then
 		GoodEPGP:StandingsFilter("role", selectedRole)
     elseif (selectedRaidFilter) then
-		GoodEPGP:StandingsFilter("raid", GoodEPGPStandingsFilter.raid)
+		GoodEPGP:LoadRaidFilter()
     else
 		GoodEPGP:LoadAllStandings()
     end
@@ -393,12 +396,8 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 	-- Check Raid Filer
 	local selectedRaidFilter = GoodEPGPStandingsFilter.raid
 
-	-- If filters aren't set then load all standings
-	if filterValue == "All Roles" or filterValue == "All Classes" then
-		GoodEPGP:LoadAllStandings()
-	else
-
-		-- Hide all standingsLinesFrames
+	-- Hide all standingsLinesFrames
+	if (#GoodEPGP.standingsLinesFrames > 0) then
 		for key, standingsLine in pairs(GoodEPGP.standingsLinesFrames) do
 			for fieldKey, field in pairs(standingsLine) do
 				if (fieldKey ~= "group") then
@@ -406,8 +405,18 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 				end
 			end
 		end
+	end
 
-		-- Filter all memebers who aren't in the players raid
+	-- If filters aren't set then load all standings
+	if (filterValue == "All Roles" or filterValue == "All Classes") and selectedRaidFilter == false then
+		GoodEPGP:LoadAllStandings()
+
+	-- If we're in a raid and all roles and class filters are cleared then load raid filters
+	elseif (filterValue == "All Roles" or filterValue == "All Classes") and selectedRaidFilter == true then
+		GoodEPGP:LoadRaidFilter()
+	else
+
+		-- Raid Filter state change catch
 		if (type == "raid") then
 			GoodEPGP:LoadRaidFilter()
 		end
@@ -428,7 +437,7 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 				if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
 					for i = 1, MAX_RAID_MEMBERS do
 						local name = select(1, GetRaidRosterInfo(i))
-						if name == player.name then
+						if player.name == name then
 							for role, combo in pairs(combos) do
 								if (combo.class == player.class and combo.spec == player.spec) then
 									GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
@@ -465,7 +474,7 @@ function GoodEPGP:StandingsFilter(type, filterValue)
 				if (IsInRaid() and GoodEPGPStandingsFilter.raid) then
 					for i = 1, MAX_RAID_MEMBERS do
 						local name = select(1, GetRaidRosterInfo(i))
-						if name == player.name then
+						if player.name == name then
 							if (player.class == filterValue) then
 								GoodEPGP:AddStandingLine(player, GoodEPGP.standingsScrollFrame, counter)
 								counter = counter + 1
