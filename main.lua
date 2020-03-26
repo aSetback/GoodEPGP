@@ -28,6 +28,13 @@ function GoodEPGP:OnInitialize()
         }
     end
 
+	-- Standings Raid Filter
+	if (GoodEPGPStandingsFilter == nil) then
+		GoodEPGPStandingsFilter = {
+			["raid"] = true,
+		}
+	end
+
 	-- Default minimap icon position
     if (GoodEPGPMiniMapPos == nil) then
         GoodEPGPMiniMapPos = {
@@ -543,7 +550,7 @@ function GoodEPGP:ExportGuildRoster()
 
             -- Calculate our PR
             local pr = GoodEPGP:Round(ep/gp, 2)
-        
+
             -- Add the player to our standings table
             table.insert(GoodEPGP.guildStandings, {["player"]=player, ["ep"]=ep, ["gp"]=gp, ["pr"]=pr, ["class"]=class, ["spec"]=spec, ["level"]=level})
         end
@@ -624,7 +631,7 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
 
     -- If our epAdded or gpAdded params are set, add the amount before setting.
     local index = GoodEPGP:GetMembersGuildIndex(player)
-    
+
     -- Verify the player is in the guild
     if (index == nil) then
         GoodEPGP:Debug(player .. " is not in the guild.  Skipping.")
@@ -637,12 +644,12 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
 
     -- Retrieve the EP & GP values from the player's officer note
     local epOriginal, gpOriginal = strsplit(",", officerNote)
-    
+
     -- If the EP value is not set, or is a non-number, we're going to set it to 0
     if (tonumber(epOriginal) == nil) then
         epOriginal = 0
     end
-    
+
     -- If the GP value is not set, or is a non-number, we're going to set it to the minimum GP
     if (tonumber(gpOriginal) == nil) then
         gpOriginal = GoodEPGP.config.minGP
@@ -654,8 +661,8 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
         epUpdated = tonumber(epOriginal)
         if (epAdded ~= nil) then
             epUpdated = epUpdated + tonumber(epAdded)
-        end 
-        
+        end
+
         -- If gpAdded is set, add that amount of GP
         gpUpdated = tonumber(gpOriginal)
         if (gpAdded ~= nil) then
@@ -669,7 +676,7 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
 
     -- Set the EPGP record
 	local name, _, _, _, class, _, note, officernote, _, _ = GetGuildRosterInfo(index)
-    
+
     -- Sanity check to make sure we have the right index
     if (player == select(1, strsplit("-", name))) then
 		-- Format our officer note
@@ -851,7 +858,7 @@ function GoodEPGP:SetSpec(player, spec, confirm)
 		if (CanEditOfficerNote()) then
 
 			-- We assume this name is the Mains name
-			local nSpec = spec..":"..oldMemName
+			local nSpec = spec..":"..gMemNote
 			GuildRosterSetPublicNote(index, nSpec)
 			GoodEPGP:SetSpec(nil, spec, false)
 
