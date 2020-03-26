@@ -361,6 +361,14 @@ end
 -- =====================
 
 function GoodEPGP:BagLootClick(bag, slot, data)
+    local _, _, raidIndex = GetLootMethod()
+    -- Player is not in raid, or ML is not set
+    if (raidIndex == nil) then
+        return
+    end
+
+    -- 
+
     if (GetContainerItemInfo(bag, slot)) then
         local itemID = select(10, GetContainerItemInfo(bag, slot))
         local itemName = select(1, GetItemInfo(itemID))
