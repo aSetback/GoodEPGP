@@ -970,7 +970,7 @@ function GoodEPGP:CreatePricesFrame()
 		-- down allowing the padding to be appled to the headers on the next line.
 		GoodEPGP.pricesFrame.blankSpacer = AceGUI:Create("Label")
 		GoodEPGP.pricesFrame.blankSpacer:SetFullWidth(true)
-		GoodEPGP.pricesFrame:AddChild(GoodEPGP.standingsFrame.blankSpacer)
+		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.blankSpacer)
 
 		-- Add 3px left side padding for the headers
 		GoodEPGP.pricesFrame.padding = AceGUI:Create("Label")

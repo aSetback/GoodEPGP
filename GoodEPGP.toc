@@ -3,7 +3,7 @@
 ## Authors: Setback <Good> & Dyaxler <Good>
 ## Version: 1.2.4
 ## SavedVariables: GoodEPGPStandings, GoodEPGPImport, GoodEPGPStandingsImport, GoodEPGPConfig, GoodEPGPLoot, GoodEPGPCachedPrices
-## SavedVariablesPerCharacter: GoodEPGPMiniMapPos, GoodEPGPCachedStandings
+## SavedVariablesPerCharacter: GoodEPGPMiniMapPos, GoodEPGPCachedStandings, GoodEPGPStandingsFilter
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 
