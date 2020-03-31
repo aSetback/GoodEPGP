@@ -1145,6 +1145,10 @@ end
 
 -- Round a number to a certain number of places
 function GoodEPGP:Round(num, places)
+    num = tonumber(num)
+    if (num == nil) then
+        return
+    end
     local mult = 10^(places or 0)
     return math.floor(num * mult + 0.5) / mult
 end
