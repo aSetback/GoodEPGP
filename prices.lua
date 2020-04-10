@@ -860,17 +860,18 @@ end
 
 -- Query server for data missing from the local client ItemCache then build cached price list
 function GoodEPGP:BuildPrices()
-	GoodEPGPCachedPrices = {}
 	for itemID, itemVars in pairs(GoodEPGP.prices) do
+		local itemCached = false;
+		for cacheID, cacheItem in pairs(GoodEPGPCachedPrices) do
+			if (cacheItem.itemID == itemID) then
+				itemCached = true;
+			end
+		end
 
-		-- Checks local cache for item and askes server for data if it doesn't exsist
-		if (GetItemInfo(itemID) == nil) then
+		if (itemCached == false) then
 			local item = Item:CreateFromItemID(itemID)
 			item:ContinueOnItemLoad(function()
-				local itemName = select(1, GetItemInfo(itemID))
-				local itemLink = select(2, GetItemInfo(itemID))
-				local itemIcon = select(10, GetItemInfo(itemID))
-				local itemSetID = select(16, GetItemInfo(itemID))
+				local itemName, itemLink, _, _, _, _, _, _, _, itemIcon, _, _, _, _, _, itemSetID = GetItemInfo(itemID);
 				local price = itemVars[1]
 				local osprice = tonumber(price) / 4
 				local class = itemVars.class
@@ -890,31 +891,6 @@ function GoodEPGP:BuildPrices()
 				};
 				table.insert(GoodEPGPCachedPrices, priceInfo)
 			end)
-		else
-
-			-- Item exsists in local cache and data will be pulled from there
-			local itemName = select(1, GetItemInfo(itemID))
-			local itemLink = select(2, GetItemInfo(itemID))
-			local itemIcon = select(10, GetItemInfo(itemID))
-			local itemSetID = select(16, GetItemInfo(itemID))
-			local price = itemVars[1]
-			local osprice = tonumber(price) / 4
-			local class = itemVars.class
-			local spec = itemVars.role
-			local phase = itemVars.phase
-			local priceInfo = {
-				["itemID"] = itemID,
-				["itemName"] = itemName,
-				["itemLink"] = itemLink,
-				["itemIcon"] = itemIcon,
-				["itemSetID"] = itemSetID,
-				["itemMSprice"] = price,
-				["itemOSprice"] = osprice,
-				["itemClass"] = class,
-				["itemSpec"] = spec,
-				["itemPhase"] = phase
-			};
-			table.insert(GoodEPGPCachedPrices, priceInfo)
 		end
 	end
 	GoodEPGP:CreatePricesFrame()
@@ -1050,6 +1026,12 @@ end
 
 -- Create a single line of prices
 function GoodEPGP:AddPriceLine(item, frame, index)
+
+	-- Load more than 50 lines
+	if (index > 50) then
+		return
+	end
+
 	-- Set up a table of pricesFrame lines
 	if (GoodEPGP.pricesLinesFrames == nil) then
 		GoodEPGP.pricesLinesFrames = {}
