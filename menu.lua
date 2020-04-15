@@ -81,9 +81,9 @@ end
 
 -- Create a confirmation dialog to make sure we want to decay
 function GoodEPGP:DecayEPGP()
-    GoodEPGP:ConfirmAction("Are you sure you want to decay EPGP?", function() 
+    GoodEPGP:ConfirmAction("Are you sure you want to decay EPGP?", function()
         GoodEPGP:Decay()
-    end, function() 
+    end, function()
         -- Do nothing
     end)
 end
@@ -119,10 +119,9 @@ function GoodEPGP:InputDialog(title, text, acceptFunction, includePlayers)
     GoodEPGP.dialogInput:SetFullWidth(true)
     GoodEPGP.dialogInput:DisableButton(true)
     GoodEPGP.dialogInput:SetLabel(text)
-    GoodEPGP.dialogInput:SetMaxLetters(3)
-    GoodEPGP.inputDialogFrame:AddChild(GoodEPGP.dialogInput)
-
-    GoodEPGP.inputDialogFrame:SetCallback("OnAccept", function() 
+    GoodEPGP.dialogInput:SetMaxLetters(4)
+	GoodEPGP.inputDialogFrame:AddChild(GoodEPGP.dialogInput)
+    GoodEPGP.inputDialogFrame:SetCallback("OnAccept", function()
         local amount = tostring(GoodEPGP.dialogInput:GetText())
         local player = nil
         if (includePlayers) then
