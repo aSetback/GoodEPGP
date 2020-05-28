@@ -69,9 +69,9 @@ end
 
 -- Main/Off Spec Chat Filter
 local function ChatFilterBids(chatFrame, event, msg, masterLooter, ...)
+	if not IsInRaid() then return end
     if msg then
         if msg:find("Whisper me %+ for main spec%, %- for off spec to bid on ") then
-            -- local masterLooter = select(1, strsplit("-", sender))
             local MAIN = GoodEPGP:BidLink("228B22", masterLooter, "ms", "MAIN")
             local OFF = GoodEPGP:BidLink("8b0000", masterLooter, "os", "OFF")
             return false,

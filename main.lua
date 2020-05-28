@@ -371,7 +371,7 @@ function GoodEPGP:BagLootClick(bag, slot, data)
         return
     end
 
-    -- 
+    --
 
     if (GetContainerItemInfo(bag, slot)) then
         local itemID = select(10, GetContainerItemInfo(bag, slot))
@@ -694,7 +694,7 @@ function GoodEPGP:SetEPGPByName(player, epUpdated, gpUpdated, epAdded, gpAdded)
         message = "Adding " .. gpAdded .. " GP to " .. player .. ".";
     end
     if (message ~= nil) then
-        SendChatMessage(message, "GUILD")
+        ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", message, "GUILD")
     end
 
 end
@@ -1124,20 +1124,20 @@ end
 -- Send an add-on message
 function GoodEPGP:AddonMessage(msg, target)
     if (target ~= nil) then
-        C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "WHISPER", target);
+        ChatThrottleLib:SendAddonMessage("NORMAL", "GoodEPGP", msg, "WHISPER", target);
     else
-        C_ChatInfo.SendAddonMessage("GoodEPGP", msg, "GUILD");
+        ChatThrottleLib:SendAddonMessage("NORMAL", "GoodEPGP", msg, "GUILD");
     end
 end
 
 -- Send a branded whisper to player.  message = message to send, playerName = player to whisper
 function GoodEPGP:SendWhisper(message, playerName)
-    SendChatMessage("GEPGP: " .. message, "WHISPER", "COMMON", playerName)
+    ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", "GEPGP: " .. message, "WHISPER", "COMMON", playerName)
 end
 
 -- Send a branded message to guild chat
 function GoodEPGP:SendGuild(message)
-    SendChatMessage("GEPGP: " .. message, "GUILD")
+    ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", "GEPGP: " .. message, "GUILD")
 end
 
 -- Round a number to a certain number of places
@@ -1165,7 +1165,7 @@ function GoodEPGP:WidestAudience(msg, rw)
     elseif UnitExists("party1") then
         channel = "PARTY"
     end
-    SendChatMessage(msg, channel)
+    ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", msg, channel)
 end
 
 -- Pad a string
@@ -1272,10 +1272,10 @@ function ItemRefTooltip:SetHyperlink(link, ...)
 		local masterlooter = select(6, GetPlayerInfoByGUID(mlGUID))
 		if masterlooter and bidType then
 			if bidType == "ms" then
-				SendChatMessage("+", "WHISPER", nil, masterlooter)
+				ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", "+", "WHISPER", nil, masterlooter)
 			end
 			if bidType == "os" then
-				SendChatMessage("-", "WHISPER", nil, masterlooter)
+				ChatThrottleLib:SendChatMessage("NORMAL", "GoodEPGP", "-", "WHISPER", nil, masterlooter)
 			end
 		end
 	else
