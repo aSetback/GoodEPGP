@@ -333,12 +333,6 @@ function GoodEPGP:PublicCommands(commandMessage, playerName)
         type = "whisper"
     end
 
-    -- Item cost lookup
-    if (command == "item") then
-        GoodEPGP:ShowPrice(argString, type, playerName)
-        return
-    end
-
     -- Player standngs lookup
     if (command == "player") then
         GoodEPGP:PlayerInfo(arg1, type, playerName)
