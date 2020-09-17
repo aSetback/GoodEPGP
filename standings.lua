@@ -63,7 +63,7 @@ function GoodEPGP:ToggleStandings()
         if (GoodEPGP.menuFrame:IsVisible()) then
             GoodEPGP.menuFrame:Hide()
         end
-        if (GoodEPGP.pricesFrame:IsVisible()) then
+        if (GoodEPGP.pricesFrame ~= nil and GoodEPGP.pricesFrame:IsVisible()) then
             GoodEPGP:TogglePrices()
         end
 

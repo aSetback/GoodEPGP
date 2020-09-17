@@ -50,7 +50,7 @@ function GoodEPGP:OnInitialize()
         ["text"] = "GoodEPGP",
         ["icon"] = "Interface\\Icons\\inv_hammer_05",
         ["OnTooltipShow"] = function(tooltip)
-            tooltip:SetText("GoodEPGP v1.2.5")
+            tooltip:SetText("GoodEPGP v1.3.0")
             tooltip:AddLine("Left click to toggle standings", 1, 1, 1)
 			tooltip:AddLine("Shift+Left click to toggle prices", 1, 1, 1)
             tooltip:AddLine("Right click for menu", 1, 1, 1)
@@ -78,11 +78,6 @@ function GoodEPGP:OnInitialize()
         GoodEPGPCachedStandings = {}
     end
 
-	-- Set up our cached price table
-	if (GoodEPGPCachedPrices == nil) then
-		GoodEPGPCachedPrices = {}
-	end
-
     -- Initialize our last updated variables
     if (GoodEPGPConfig.standingsLastUpdated == nil) then
         GoodEPGPConfig.standingsLastUpdated = 0
@@ -90,9 +85,6 @@ function GoodEPGP:OnInitialize()
 
     -- Build standings frames
     GoodEPGP:CreateStandingsFrame()
-
-    -- Build our prices table
-    GoodEPGP:BuildPrices()
 
     -- Create our options frame
     GoodEPGP:CreateMenuFrame()
@@ -450,27 +442,6 @@ function GoodEPGP:GetWildcardItemIDs(item)
     end
 
     return itemIDs
-end
-
--- Display the price of an item
-function GoodEPGP:DisplayPrice(itemID, type, playerName)
-    -- Verify we have a passed itemID
-    if (itemID == nil) then
-        return false
-    end
-
-    -- Verify itemID is numeric
-    itemID = tonumber(itemID)
-
-    -- Retrieve item info from the database asynchronously
-    local item = Item:CreateFromItemID(itemID)
-    item:ContinueOnItemLoad(function()
-        local itemName = select(1, GetItemInfo(itemID))
-        local itemLink = select(2, GetItemInfo(itemID))
-        local itemPrice = GoodEPGP:GetPrice(itemID)
-        local itemString = GoodEPGP:PadString(itemPrice .. "GP", 10, "_", "right") .. itemLink
-        GoodEPGP:HandleOutput(itemString, type, playerName)
-    end)
 end
 
 -- Get an item's ID based on the name (retrived from prices.lua)

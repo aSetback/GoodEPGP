@@ -232,152 +232,152 @@ local prices = {
 	[20644] = { 18, "Nightmare Engulfed Object", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Four"};
 	--------------------------------
 	-------- Blackwing Lair --------
-	--------------------------------
-	[16818] = { 100, "Netherwind Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16832] = { 100, "Bloodfang Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16897] = { 100, "Stormrage Chestguard", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16898] = { 150, "Stormrage Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16899] = { 150, "Stormrage Handguards", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16902] = { 100, "Stormrage Pauldrons", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16903] = { 100, "Stormrage Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16904] = { 150, "Stormrage Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16905] = { 150, "Bloodfang Chestpiece", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16906] = { 100, "Bloodfang Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16907] = { 100, "Bloodfang Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16908] = { 150, "Bloodfang Hood", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16910] = { 150, "Bloodfang Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16911] = { 150, "Bloodfang Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16912] = { 100, "Netherwind Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16913] = { 150, "Netherwind Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16916] = { 100, "Netherwind Robes", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16917] = { 100, "Netherwind Mantle", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16918] = { 100, "Netherwind Bindings", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16919] = { 100, "Boots of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16920] = { 150, "Handguards of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16923] = { 150, "Robes of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16924] = { 150, "Pauldrons of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16925] = { 150, "Belt of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16926] = { 150, "Bindings of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16927] = { 100, "Nemesis Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16928] = { 100, "Nemesis Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16931] = { 150, "Nemesis Robes", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16932] = { 100, "Nemesis Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16933] = { 150, "Nemesis Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16934] = { 100, "Nemesis Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16935] = { 150, "Dragonstalker's Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16936] = { 150, "Dragonstalker's Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16937] = { 150, "Dragonstalker's Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16940] = { 150, "Dragonstalker's Gauntlets", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16941] = { 150, "Dragonstalker's Greaves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16942] = { 150, "Dragonstalker's Breastplate", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	--------------------------------	
+	[16818] = { 50, "Netherwind Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16832] = { 50, "Bloodfang Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16897] = { 50, "Stormrage Chestguard", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16898] = { 75, "Stormrage Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16899] = { 75, "Stormrage Handguards", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16902] = { 50, "Stormrage Pauldrons", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16903] = { 50, "Stormrage Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16904] = { 75, "Stormrage Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16905] = { 75, "Bloodfang Chestpiece", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16906] = { 50, "Bloodfang Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16907] = { 50, "Bloodfang Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16908] = { 75, "Bloodfang Hood", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16910] = { 75, "Bloodfang Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16911] = { 75, "Bloodfang Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16912] = { 50, "Netherwind Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16913] = { 75, "Netherwind Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16916] = { 50, "Netherwind Robes", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16917] = { 50, "Netherwind Mantle", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16918] = { 50, "Netherwind Bindings", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16919] = { 50, "Boots of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16920] = { 75, "Handguards of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16923] = { 75, "Robes of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16924] = { 75, "Pauldrons of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16925] = { 75, "Belt of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16926] = { 75, "Bindings of Transcendence", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16927] = { 50, "Nemesis Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16928] = { 50, "Nemesis Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16931] = { 75, "Nemesis Robes", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16932] = { 50, "Nemesis Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16933] = { 75, "Nemesis Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16934] = { 50, "Nemesis Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16935] = { 75, "Dragonstalker's Bracers", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16936] = { 75, "Dragonstalker's Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16937] = { 75, "Dragonstalker's Spaulders", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16940] = { 75, "Dragonstalker's Gauntlets", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16941] = { 75, "Dragonstalker's Greaves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16942] = { 75, "Dragonstalker's Breastplate", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16943] = { 84, "Bracers of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16944] = { 96, "Belt of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16945] = { 120, "Epaulets of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16948] = { 96, "Gauntlets of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16949] = { 96, "Greaves of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[16950] = { 144, "Breastplate of Ten Storms", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16951] = { 100, "Judgement Bindings", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16952] = { 100, "Judgement Belt", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16953] = { 100, "Judgement Spaulders", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16956] = { 100, "Judgement Gauntlets", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16957] = { 100, "Judgement Sabatons", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16958] = { 100, "Judgement Breastplate", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[16959] = { 150, "Bracelets of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16960] = { 100, "Waistband of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16961] = { 100, "Pauldrons of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16964] = { 150, "Gauntlets of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16965] = { 150, "Sabatons of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[16966] = { 150, "Breastplate of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16951] = { 50, "Judgement Bindings", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16952] = { 50, "Judgement Belt", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16953] = { 50, "Judgement Spaulders", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16956] = { 50, "Judgement Gauntlets", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16957] = { 50, "Judgement Sabatons", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16958] = { 50, "Judgement Breastplate", ["class"] = { "Paladin" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[16959] = { 75, "Bracelets of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16960] = { 50, "Waistband of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16961] = { 50, "Pauldrons of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16964] = { 75, "Gauntlets of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16965] = { 75, "Sabatons of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[16966] = { 75, "Breastplate of Wrath", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19002] = { 0, "Head of Nefarian", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19003] = { 156, "Head of Nefarian", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19334] = { 220, "The Untamed Blade", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
-	[19335] = { 96, "Spineshatter", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19003] = { 94, "Head of Nefarian", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19334] = { 176, "The Untamed Blade", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
+	[19335] = { 77, "Spineshatter", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19336] = { 0, "Arcane Infused Gem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19337] = { 0, "The Black Book", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19339] = { 240, "Mind Quickening Gem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19339] = { 192, "Mind Quickening Gem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19340] = { 0, "Rune of Metamorphosis", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19341] = { 160, "Lifegiving Gem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19341] = { 128, "Lifegiving Gem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19342] = { 0, "Venomous Totem", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19343] = { 0, "Scrolls of Blinding Light", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19344] = { 0, "Natural Alignment Crystal", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19345] = { 0, "Aegis of Preservation", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19346] = { 144, "Dragonfang Blade", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19347] = { 240, "Claw of Chromaggus", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19348] = { 160, "Red Dragonscale Protector", ["class"] = { "Paladin", "Shaman" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
-	[19349] = { 170, "Elementium Reinforced Bulwark", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19350] = { 60, "Heartstriker", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19351] = { 228, "Maladath, Runed Blade of the Black Flight", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19352] = { 288, "Chromatically Tempered Sword", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19353] = { 48, "Drake Talon Cleaver", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19354] = { 48, "Draconic Avenger", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19355] = { 106, "Shadow Wing Focus Staff", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19356] = { 372, "Staff of the Shadow Flame", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19357] = { 48, "Herald of Woe", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19358] = { 96, "Draconic Maul", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19360] = { 296, "Lok'amir il Romathis", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
-	[19361] = { 296, "Ashjre'thul, Crossbow of Smiting", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19362] = { 120, "Doom's Edge", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19363] = { 216, "Crul'shorukh, Edge of Chaos", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19364] = { 192, "Ashkandi, Greatsword of the Brotherhood", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19365] = { 120, "Claw of the Black Drake", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19346] = { 116, "Dragonfang Blade", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19347] = { 192, "Claw of Chromaggus", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19348] = { 96, "Red Dragonscale Protector", ["class"] = { "Paladin", "Shaman" }, ["role"] = { "Healer", "Melee" }, ["phase"] = "Three" };
+	[19349] = { 136, "Elementium Reinforced Bulwark", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19350] = { 36, "Heartstriker", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19351] = { 182, "Maladath, Runed Blade of the Black Flight", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19352] = { 230, "Chromatically Tempered Sword", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19353] = { 38, "Drake Talon Cleaver", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19354] = { 38, "Draconic Avenger", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19355] = { 85, "Shadow Wing Focus Staff", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19356] = { 298, "Staff of the Shadow Flame", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19357] = { 38, "Herald of Woe", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19358] = { 77, "Draconic Maul", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19360] = { 237, "Lok'amir il Romathis", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
+	[19361] = { 237, "Ashjre'thul, Crossbow of Smiting", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19362] = { 96, "Doom's Edge", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19363] = { 273, "Crul'shorukh, Edge of Chaos", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19364] = { 154, "Ashkandi, Greatsword of the Brotherhood", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19365] = { 96, "Claw of the Black Drake", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19366] = { 0, "Master Dragonslayer's Orb", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19367] = { 48, "Dragon's Touch", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19368] = { 96, "Dragonbreath Hand Cannon", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19367] = { 38, "Dragon's Touch", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19368] = { 77, "Dragonbreath Hand Cannon", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19369] = { 0, "Gloves of Rapid Evolution", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19370] = { 252, "Mantle of the Blackwing Cabal", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19370] = { 151, "Mantle of the Blackwing Cabal", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19371] = { 0, "Pendant of the Fallen Dragon", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19372] = { 156, "Helm of Endless Rage", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19372] = { 94, "Helm of Endless Rage", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19373] = { 0, "Black Brood Pauldrons", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19374] = { 280, "Bracers of Arcane Accuracy", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19375] = { 325, "Mish'undare, Circlet of the Mind Flayer", ["class"] = { "Paladin", "Shaman", "Druid", "Priest", "Warlock", "Mage" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
-	[19376] = { 60, "Archimtiros' Ring of Reckoning", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19377] = { 248, "Prestor's Talisman of Connivery", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19378] = { 84, "Cloak of the Brood Lord", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19379] = { 482, "Neltharion's Tear", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19374] = { 168, "Bracers of Arcane Accuracy", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19375] = { 260, "Mish'undare, Circlet of the Mind Flayer", ["class"] = { "Paladin", "Shaman", "Druid", "Priest", "Warlock", "Mage" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
+	[19376] = { 36, "Archimtiros' Ring of Reckoning", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19377] = { 198, "Prestor's Talisman of Connivery", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19378] = { 50, "Cloak of the Brood Lord", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19379] = { 386, "Neltharion's Tear", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19380] = { 0, "Therazane's Link", ["class"] = { "Paladin", "Shaman" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
-	[19381] = { 156, "Boots of the Shadow Flame", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19382] = { 324, "Pure Elementium Band", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
+	[19381] = { 125, "Boots of the Shadow Flame", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19382] = { 259, "Pure Elementium Band", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
 	[19383] = { 0, "Master Dragonslayer's Medallion", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19384] = { 0, "Master Dragonslayer's Ring", ["class"] = { "Warrior", "Paladin", "Shaman", "Hunter", "Rogue", "Druid" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
-	[19385] = { 300, "Empowered Leggings", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
-	[19386] = { 96, "Elementium Threaded Cloak", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19387] = { 252, "Chromatic Boots", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Tank", "Melee" }, ["phase"] = "Three" };
-	[19388] = { 48, "Angelista's Grasp", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19389] = { 132, "Taut Dragonhide Shoulderpads", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19390] = { 132, "Taut Dragonhide Gloves", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
-	[19390] = { 48, "Taut Dragonhide Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19385] = { 240, "Empowered Leggings", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
+	[19386] = { 58, "Elementium Threaded Cloak", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19387] = { 202, "Chromatic Boots", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Tank", "Melee" }, ["phase"] = "Three" };
+	[19388] = { 38, "Angelista's Grasp", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19389] = { 79, "Taut Dragonhide Shoulderpads", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19390] = { 79, "Taut Dragonhide Gloves", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Healer", "Caster" }, ["phase"] = "Three" };
+	[19390] = { 38, "Taut Dragonhide Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19391] = { 0, "Shimmering Geta", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19392] = { 0, "Girdle of the Fallen Crusader", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19393] = { 0, "Primalist's Linked Waistguard", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19394] = { 216, "Drake Talon Pauldrons", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Tank", "Melee" }, ["phase"] = "Three" };
-	[19395] = { 425, "Rejuvenating Gem", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
-	[19396] = { 108, "Taut Dragonhide Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19397] = { 96, "Ring of Blackrock", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19398] = { 136, "Cloak of Firemaw", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19394] = { 130, "Drake Talon Pauldrons", ["class"] = { "Warrior", "Paladin" }, ["role"] = { "Tank", "Melee" }, ["phase"] = "Three" };
+	[19395] = { 340, "Rejuvenating Gem", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
+	[19396] = { 65, "Taut Dragonhide Belt", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19397] = { 58, "Ring of Blackrock", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19398] = { 82, "Cloak of Firemaw", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19399] = { 0, "Black Ash Robe", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19400] = { 216, "Firemaw's Clutch", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19400] = { 173, "Firemaw's Clutch", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19401] = { 0, "Primalist's Linked Legguards", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19402] = { 226, "Legguards of the Fallen Crusader", ["class"] = { "Paladin" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
-	[19403] = { 226, "Band of Forced Concentration", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19405] = { 180, "Malfurion's Blessed Bulwark", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19406] = { 348, "Drake Fang Talisman", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19407] = { 192, "Ebony Flame Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19430] = { 96, "Shroud of Pure Thought", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
-	[19431] = { 192, "Styleen's Impeding Scarab", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19432] = { 148, "Circle of Applied Force", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
+	[19402] = { 136, "Legguards of the Fallen Crusader", ["class"] = { "Paladin" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
+	[19403] = { 136, "Band of Forced Concentration", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19405] = { 108, "Malfurion's Blessed Bulwark", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19406] = { 278, "Drake Fang Talisman", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19407] = { 115, "Ebony Flame Gloves", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19430] = { 58, "Shroud of Pure Thought", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
+	[19431] = { 115, "Styleen's Impeding Scarab", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19432] = { 89, "Circle of Applied Force", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
 	[19433] = { 0, "Emberweave Leggings", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19434] = { 148, "Band of Dark Dominion", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19435] = { 24, "Essence Gatherer", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
-	[19436] = { 120, "Cloak of Draconic Might", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
-	[19437] = { 196, "Boots of Pure Thought", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
-	[19438] = { 124, "Ringo's Blizzard Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19434] = { 89, "Band of Dark Dominion", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19435] = { 14, "Essence Gatherer", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
+	[19436] = { 72, "Cloak of Draconic Might", ["class"] = { "Paladin", "Shaman", "Druid" }, ["role"] = { "Melee" }, ["phase"] = "Three" };
+	[19437] = { 157, "Boots of Pure Thought", ["class"] = { "Paladin", "Shaman", "Druid", "Priest" }, ["role"] = { "Healer" }, ["phase"] = "Three" };
+	[19438] = { 74, "Ringo's Blizzard Boots", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[19439] = { 0, "Interlaced Shadow Jerkin", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 	[20383] = { 0, "Head of the Broodlord Lashlayer", ["class"] = { "" }, ["role"] = { "" }, ["phase"] = "Three"};
 
 	----------------------
 	-------- AQ40 --------
 	----------------------
-	[20926] = { 50, "Vek'nilash's Circlet", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
+	[20926] = { 250, "Vek'nilash's Circlet", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[20927] = { 250, "Ouro's Intact Hide", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[20928] = { 250, "Qiraji Bindings of Command", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[20929] = { 250, "Carapace of the Old God", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
@@ -397,6 +397,7 @@ local prices = {
 	[21583] = { 250, "Cloak of Clarity", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[21585] = { 400, "Dark Storm Gauntlets", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[21586] = { 400, "Belt of Never-ending Agony", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
+	[21596] = { 150, "Ring of the Godslayer", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[21597] = { 250, "Royal Scepter of Vek'lor", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[21598] = { 200, "Royal Qiraji Belt", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
 	[21599] = { 0, "Vek'lor's Gloves of Devastation", ["class"] = {""}, ["role"] = {""}, ["phase"] = "Five"};
@@ -783,6 +784,10 @@ local dateFormat = "%m/%d/%y @ %I:%M:%S %p"
 
 -- Toggle the display of our prices window
 function GoodEPGP:TogglePrices()
+	if (GoodEPGP.pricesFrame == nil) then
+		GoodEPGP:CreatePricesFrame()
+	end
+
     if (GoodEPGP.pricesFrame:IsVisible()) then
         GoodEPGP.pricesFrame:Hide()
     else
@@ -792,56 +797,71 @@ function GoodEPGP:TogglePrices()
 		if (GoodEPGP.standingsFrame:IsVisible()) then
 			GoodEPGP:ToggleStandings()
 		end
-
-		-- Clear all filters
-		GoodEPGP.pricesFrame.roleSelectDropdown:SetValue()
-		GoodEPGP.pricesFrame.roleSelectDropdown:SetText("All Roles")
-		GoodEPGP.pricesFrame.classSelectDropdown:SetValue()
-		GoodEPGP.pricesFrame.classSelectDropdown:SetText("All Classes")
-
-		GoodEPGP:LoadAllPrices()
         GoodEPGP.pricesFrame:Show()
     end
 end
 
--- Query server for data missing from the local client ItemCache then build cached price list
-function GoodEPGP:BuildPrices()
-	for itemID, itemVars in pairs(GoodEPGP.prices) do
-		local itemCached = false;
-		for cacheID, cacheItem in pairs(GoodEPGPCachedPrices) do
-			if (cacheItem.itemID == itemID) then
-				itemCached = true;
+function GoodEPGP:ClearPrices() 
+	if (GoodEPGP.pricesLinesFrames ~= nil) then
+		for key, pricesLine in pairs(GoodEPGP.pricesLinesFrames) do
+			for fieldKey, field in pairs(pricesLine) do
+				pricesLine["group"].frame:Hide()
 			end
 		end
-
-		if (itemCached == false or 1) then
-			local item = Item:CreateFromItemID(itemID)
-			item:ContinueOnItemLoad(function()
-				local itemName, itemLink, _, _, _, _, _, _, _, itemIcon, _, _, _, _, _, itemSetID = GetItemInfo(itemID);
-				local price = itemVars[1]
-				local osprice = tonumber(price) / 4
-				local class = itemVars.class
-				local spec = itemVars.role
-				local phase = itemVars.phase
-				local priceInfo = {
-					["itemID"] = itemID,
-					["itemName"] = itemName,
-					["itemLink"] = itemLink,
-					["itemIcon"] = itemIcon,
-					["itemSetID"] = itemSetID,
-					["itemMSprice"] = price,
-					["itemOSprice"] = osprice,
-					["itemClass"] = class,
-					["itemSpec"] = spec,
-					["itemPhase"] = phase
-				};
-				table.insert(GoodEPGPCachedPrices, priceInfo)
-			end)
-		end
 	end
-	GoodEPGP:CreatePricesFrame()
-	GoodEPGP:PricesSort("name")
 end
+
+function GoodEPGP:PriceSearch(item)
+	GoodEPGP.ClearPrices()
+    -- Attempt to pull up item data via link
+    local itemID = GoodEPGP:GetItemID(item)
+
+	GoodEPGPCachedPrices = {}
+	
+    -- If we couldn't find an item id, try a wildcard check against the price list
+    if (itemID == nil) then
+        local itemIDs = GoodEPGP:GetWildcardItemIDs(item)
+        -- Display the price info for all matching items
+        for key, value in pairs(itemIDs) do
+            GoodEPGP:DisplayPrice(value, key)
+        end
+    else
+        -- Display the price info for the single matching info.
+        GoodEPGP:DisplayPrice(itemID, 0)
+    end
+end
+
+-- Display the price of an item
+function GoodEPGP:DisplayPrice(itemID, index)
+    -- Verify we have a passed itemID
+    if (itemID == nil) then
+        return false
+    end
+
+    -- Verify itemID is numeric
+    itemID = tonumber(itemID)
+
+    -- Retrieve item info from the database asynchronously
+    local item = Item:CreateFromItemID(itemID)
+	item:ContinueOnItemLoad(function()
+		local itemName, itemLink, _, _, _, _, _, _, _, itemIcon, _, _, _ , _, _, itemSetID = GetItemInfo(itemID)
+		local itemPrice = GoodEPGP:GetPrice(itemID)
+		local offSpecPrice = tonumber(itemPrice) / 4
+		local priceInfo = {
+			["itemID"] = itemID,
+			["itemName"] = itemName,
+			["itemLink"] = itemLink,
+			["itemIcon"] = itemIcon,
+			["itemSetID"] = itemSetID,
+			["itemMSprice"] = itemPrice,
+			["itemOSprice"] = offSpecPrice
+		}
+		table.insert(GoodEPGPCachedPrices, priceInfo)
+        GoodEPGP:AddPriceLine(priceInfo, GoodEPGP.pricesScrollFrame, index)
+    end)
+end
+
+
 
 -- Create pricesFrame if it doesn't exist.
 function GoodEPGP:CreatePricesFrame()
@@ -849,55 +869,20 @@ function GoodEPGP:CreatePricesFrame()
 
 		-- Create parent frame
 		GoodEPGP.pricesFrame = AceGUI:Create("Frame")
-		GoodEPGP.pricesFrame:SetTitle("GoodEPGP - Price List")
-		GoodEPGP.pricesFrame:SetStatusText("Last Updated: " .. date(dateFormat))
+		GoodEPGP.pricesFrame:SetTitle("GoodEPGP - Item Prices")
 		GoodEPGP.pricesFrame:SetLayout("Flow")
 		GoodEPGP.pricesFrame:EnableResize(false)
 		GoodEPGP.pricesFrame:SetRelativeWidth(1)
 
-        -- Add class filter dropdown
-        GoodEPGP.pricesFrame.classSelectDropdown = AceGUI:Create("Dropdown")
-        GoodEPGP.pricesFrame.classSelectDropdown:SetLabel(" Class")
-        GoodEPGP.pricesFrame.classSelectDropdown:SetList(classList)
-		GoodEPGP.pricesFrame.classSelectDropdown:SetText("All Classes")
-        GoodEPGP.pricesFrame.classSelectDropdown:SetCallback("OnValueChanged", function(widget)
-            local selectedClass = classList[widget:GetValue()];
-            GoodEPGP:PricesFilter("class", selectedClass)
-        end)
-        GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.classSelectDropdown)
-
-		-- Add role filter dropdown
-        GoodEPGP.pricesFrame.roleSelectDropdown = AceGUI:Create("Dropdown")
-        GoodEPGP.pricesFrame.roleSelectDropdown:SetLabel(" Role")
-        GoodEPGP.pricesFrame.roleSelectDropdown:SetList(roleList)
-		GoodEPGP.pricesFrame.roleSelectDropdown:SetText("All Roles")
-		GoodEPGP.pricesFrame.roleSelectDropdown:SetCallback("OnValueChanged", function(widget)
-            local selectedRole = roleList[widget:GetValue()];
-            GoodEPGP:PricesFilter("role", selectedRole)
-        end)
-        GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.roleSelectDropdown)
-
-		-- Add phase filter dropdown
-        GoodEPGP.pricesFrame.phaseSelectDropdown = AceGUI:Create("Dropdown")
-        GoodEPGP.pricesFrame.phaseSelectDropdown:SetLabel(" Phase")
-        GoodEPGP.pricesFrame.phaseSelectDropdown:SetList(phaseList)
-		GoodEPGP.pricesFrame.phaseSelectDropdown:SetText("All Phases")
-        GoodEPGP.pricesFrame.phaseSelectDropdown:SetCallback("OnValueChanged", function(widget)
-            local selectedPhase = phaseList[widget:GetValue()];
-			GoodEPGP:PricesFilter("phase", selectedPhase)
-        end)
-        GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.phaseSelectDropdown)
-
-		-- Blank Spacer: this filles up the remaining space after the phase drop
-		-- down allowing the padding to be appled to the headers on the next line.
-		GoodEPGP.pricesFrame.blankSpacer = AceGUI:Create("Label")
-		GoodEPGP.pricesFrame.blankSpacer:SetFullWidth(true)
-		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.blankSpacer)
-
-		-- Add 3px left side padding for the headers
-		GoodEPGP.pricesFrame.padding = AceGUI:Create("Label")
-		GoodEPGP.pricesFrame.padding:SetWidth(3)
-		GoodEPGP.pricesFrame:AddChild(GoodEPGP.pricesFrame.padding)
+		GoodEPGP.priceSearch = AceGUI:Create("EditBox")
+		GoodEPGP.priceSearch:SetFullWidth(true)
+		GoodEPGP.priceSearch:SetLabel("Search")
+		GoodEPGP.priceSearch:SetMaxLetters(30)
+		GoodEPGP.pricesFrame:AddChild(GoodEPGP.priceSearch)
+		
+		GoodEPGP.priceSearch:SetCallback("OnEnterPressed", function(widget)
+			GoodEPGP:PriceSearch(widget:GetText())
+		end)
 
 		-- Generate table headers
 		local headers = {
@@ -927,46 +912,6 @@ function GoodEPGP:CreatePricesFrame()
 		-- Allows closing hitting ESC
 		_G["GoodEPGP_Prices"] = GoodEPGP.pricesFrame
 		table.insert(UISpecialFrames, "GoodEPGP_Prices")
-	end
-end
-
--- Load prices from our cache
-function GoodEPGP:LoadAllPrices()
-
-	-- Clear all filters
-	GoodEPGP.pricesFrame.roleSelectDropdown:SetValue()
-	GoodEPGP.pricesFrame.roleSelectDropdown:SetText("All Roles")
-	GoodEPGP.pricesFrame.classSelectDropdown:SetValue()
-	GoodEPGP.pricesFrame.classSelectDropdown:SetText("All Classes")
-	GoodEPGP.pricesFrame.phaseSelectDropdown:SetValue()
-	GoodEPGP.pricesFrame.phaseSelectDropdown:SetText("All Phases")
-
-	-- Go through our prices and display them
-	for key, item in pairs(GoodEPGPCachedPrices) do
-		GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, key)
-	end
-end
-
--- Load prices by phase
-function GoodEPGP:LoadPhase(phase)
-
-	-- Clear all filters
-	GoodEPGP.pricesFrame.roleSelectDropdown:SetValue()
-	GoodEPGP.pricesFrame.roleSelectDropdown:SetText("All Roles")
-	GoodEPGP.pricesFrame.classSelectDropdown:SetValue()
-	GoodEPGP.pricesFrame.classSelectDropdown:SetText("All Classes")
-
-	-- Go through our standings and display them by phase
-	if (phase ~= nil and phase ~= "All Phases") then
-		local counter = 1
-		for key, item in pairs(GoodEPGPCachedPrices) do
-			if item.itemPhase == phase then
-				GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, counter)
-				counter = counter + 1
-			end
-		end
-	else
-		GoodEPGP:LoadAllPrices()
 	end
 end
 
@@ -1160,123 +1105,12 @@ function GoodEPGP:PricesSort(sortColumn)
 			else
 	            return a[sortColumn] > b[sortColumn]
 			end
-        end
-    end)
+		end
 
-	-- Check filter state and load accordingly
-	local selectedClass = classList[GoodEPGP.pricesFrame.classSelectDropdown:GetValue()]
-	local selectedRole = roleList[GoodEPGP.pricesFrame.roleSelectDropdown:GetValue()]
-	local selectedPhase = phaseList[GoodEPGP.pricesFrame.phaseSelectDropdown:GetValue()]
-    if (selectedClass ~= nil) then
-        GoodEPGP:PricesFilter("class", selectedClass)
-	elseif (selectedRole ~= nil) then
-        GoodEPGP:PricesFilter("role", selectedRole)
-	elseif (selectedPhase ~= nil) then
-		GoodEPGP:PricesFilter("phase", selectedPhase)
-	else
-		GoodEPGP:LoadAllPrices()
+	end)
+	
+	for key, item in pairs(GoodEPGPCachedPrices) do
+		GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, key)
 	end
-end
 
--- Filter the EPGP price list
-function GoodEPGP:PricesFilter(type, filterValue)
-	local selectedClass = classList[GoodEPGP.pricesFrame.classSelectDropdown:GetValue()]
-	local selectedRole = roleList[GoodEPGP.pricesFrame.roleSelectDropdown:GetValue()]
-	local selectedPhase = phaseList[GoodEPGP.pricesFrame.phaseSelectDropdown:GetValue()]
-	if selectedPhase == nil then selectedPhase = "All Phases" end
-
-
-	-- If filters aren't set then load all prices
-	if ((selectedClass == nil or selectedClass == "All Classes") and (selectedRole == nil or selectedRole == "All Roles") and (selectedPhase == nil or selectedPhase == "All Phases")) then
-		GoodEPGP:LoadAllPrices()
-	else
-
-		-- Hide all pricessLinesFrames
-		for key, pricesLine in pairs(GoodEPGP.pricesLinesFrames) do
-			for fieldKey, field in pairs(pricesLine) do
-				if (fieldKey ~= "group") then
-					GoodEPGP.pricesLinesFrames[key]["group"].frame:Hide()
-				end
-			end
-		end
-
-		-- Phase changed apply new filter
-		if (type == "phase") then
-			GoodEPGP:LoadPhase(selectedPhase)
-		end
-
-		-- Go through our standings and display lines by role
-		if (type == "role") then
-			local counter = 1
-			local roleCombos = validRoleCombos[filterValue]
-			for key, item in pairs(GoodEPGPCachedPrices) do
-				if (selectedPhase == item.itemPhase or selectedPhase == "All Phases")  then
-					if item.itemSpec then
-						for key, currentSpec in pairs(item.itemSpec) do
-							if (selectedClass == nil or selectedClass == "All Classes") then
-								if (currentSpec == filterValue) then
-									GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, counter)
-									counter = counter + 1
-								end
-							else
-								if (selectedRole == nil or selectedRole == "All Roles") then
-									GoodEPGP:PricesFilter("class", selectedClass)
-									return
-								end
-								for key, classCombo in pairs(roleCombos) do
-									if (selectedClass == classCombo and filterValue == currentSpec) then
-										if item.itemClass then
-											for key, currentClass in pairs(item.itemClass) do
-												if (currentClass == selectedClass) then
-													GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, counter)
-													counter = counter + 1
-												end
-											end
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		-- Go through our standings and display filers by class
-		if (type == "class") then
-			local counter = 1
-			local classCombos = validClassCombos[filterValue]
-			for key, item in pairs(GoodEPGPCachedPrices) do
-				if (selectedPhase == item.itemPhase or selectedPhase == "All Phases")  then
-					if item.itemClass then
-						for key, currentClass in pairs(item.itemClass) do
-							if (selectedRole == nil or selectedRole == "All Roles") then
-								if (currentClass == filterValue) then
-									GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, counter)
-									counter = counter + 1
-								end
-							else
-								if (selectedClass == nil or selectedClass == "All Classes") then
-									GoodEPGP:PricesFilter("role", selectedRole)
-									return
-								end
-								for key, roleCombo in pairs(classCombos) do
-									if (selectedRole == roleCombo and currentClass == filterValue) then
-										if item.itemSpec then
-											for key, currentSpec in pairs(item.itemSpec) do
-												if (currentSpec == selectedRole) then
-													GoodEPGP:AddPriceLine(item, GoodEPGP.pricesScrollFrame, counter)
-													counter = counter + 1
-												end
-											end
-										end
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
 end
