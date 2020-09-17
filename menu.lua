@@ -183,14 +183,6 @@ function GoodEPGP:BuildPlayerMenu()
         GoodEPGP:TogglePrices()
     end)
 
-	-- Create clear cache button
-    local cacheButton = AceGUI:Create("Button")
-    cacheButton:SetText("Clear Cache")
-    cacheButton:SetCallback("OnClick", function()
-        GoodEPGPCachedPrices = {}
-        GoodEPGP:BuildPrices()
-    end)
-
     -- Create the Standings Button
     local standingsButton = AceGUI:Create("Button")
     standingsButton:SetText("EPGP Standings")
